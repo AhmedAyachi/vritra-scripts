@@ -30,6 +30,7 @@ module.exports=(event)=>{
         devServer:{
             compress:true,
             port:3000,
+            open:true,
             static:{
                 directory:path.join("platforms/browser/","www"),
             },

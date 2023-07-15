@@ -2,12 +2,12 @@
   "name": "cherries-scripts",
   "version": "1.0.0",
   "description": "Configuration and scripts for Cherries-themed apps",
-  "main": "bin/cherries-scripts.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "cherries-scripts": "./src/cherries-scripts.js"
+    "cherries-scripts": "./src/index.js"
   },
   "dependencies": {
     "copy-webpack-plugin": "^11.0.0",
