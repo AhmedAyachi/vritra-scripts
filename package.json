@@ -1,0 +1,30 @@
+{
+  "name": "cherries-scripts",
+  "version": "1.0.0",
+  "description": "Configuration and scripts for Cherries-themed apps",
+  "main": "bin/cherries-scripts.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "cherries-scripts": "./src/cherries-scripts.js"
+  },
+  "dependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.1",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.1",
+    "style-loader": "^3.3.1",
+    "terser-webpack-plugin": "^5.3.5",
+    "webpack": "^5.73.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "keywords": [
+    "cherries",
+    "scripts",
+    "cherries-scripts"
+  ],
+  "author": "Ahmed Ayachi",
+  "license": "ISC"
+}
