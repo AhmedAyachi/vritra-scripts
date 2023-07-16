@@ -9,9 +9,15 @@ process.on("unhandledRejection",(error)=>{
 try{
     const [cmdname,...args]=process.argv.slice(2);
     const command=require(__dirname+"/"+cmdname+".js");
-    command(args);
+    if(typeof(command)==="function"){
+        command(args);
+    }
+    else{
+        throw new Error("no such command");
+    }
+    
 }
 catch(error){
-    console.error("no such command");
+    console.error(error.message);
     process.exit(0);
 }
