@@ -1,30 +1,56 @@
 
-const hasBrowserPlatform=require("./subscripts/hasBrowserPlatform");
-const PhoneGap=require("phonegap/lib/phonegap");
-const proxy=require("phonegap/lib/phonegap/util/connect-proxy");
+//const prepare=require("./subscripts/prepare");
+const build=require("./build");
+const cordova=require("cordova-serve")();
+const logger=require("./subscripts/logger");
+const webpack=require("webpack");
+/* const http=require("http");
+new http.Server() */
 
-module.exports=function test(args){return new Promise((resolve,reject)=>{
-    if(hasBrowserPlatform()){
-        const phonegap=new PhoneGap();
-        const options={
-            port:3000,
-            autoreload:true,
-            connect:false,
-        };
-        phonegap.serve(options,(error,data)=>{
-            console.log("server started");
-            if(error){reject(error)}
-            else{
-                let i=0;
-                const {server}=data;
-                server.on("listening",function onRequest(request,result){
-                    console.log("connection listener called")
-                    /* result.once("finish",()=>{
-                        i++;
-                        console.log(i+": update listener called");
-                    }); */
-                });
-            }
-        });
-    }
-})}
+module.exports=(args)=>build([...args,"--env=test"],true).
+then(({webpackConfig,env})=>{
+    let server;
+    const {devServer}=webpackConfig;
+    console.log(devServer.static.directory);
+    const compiler=webpack({
+        ...webpackConfig,
+        output:{
+            ...webpackConfig.output,
+            path:devServer.static.directory,
+        },
+    });
+    compiler.watch(webpackConfig.watchOptions,(error)=>{
+        if(error){logger.error(error.message)}
+        else{
+            logger.log("www folder updated");
+            new Promise((resolve,reject)=>{
+                if(server){
+                    server.close(error=>{
+                        console.log("server closed");
+                        error?reject(error):setTimeout(()=>{resolve()},5000);
+                    });
+                }
+                else{resolve()}
+            }).
+            then(()=>cordova.servePlatform("browser",{
+                //root:process.cwd()+"/www/index.html",
+                port:devServer.port,
+                noLogOutput:true,
+                noServerInfo:true,
+            }).
+            then(()=>{
+                console.log("server launched");
+                const {port,root}=cordova;
+                if(server===undefined){
+                    cordova.launchBrowser({
+                        url:`http://localhost:${port}`,
+                    });
+                }
+                server=cordova.server;
+            })).
+            catch(error=>{
+                logger.error(error.message);
+            });
+        }
+    });
+});

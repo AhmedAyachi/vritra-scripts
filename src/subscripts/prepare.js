@@ -36,12 +36,14 @@ module.exports=(args,checkBrowserPlatform)=>new Promise((resolve,reject)=>{
         resolve({
             webpackConfig,
             env:{id:envId,name:getEnvName(envId)},
+            ipaddress:checkBrowserPlatform&&getLocalIpAddress(),
         });
     }
     else{
-        console.log("  Browser platform is required to run a development server.");
-        console.log("  Try running: cordova platform add browser");
-        console.log("");
+        logger.log([
+            "Browser platform is required to run a development server.",
+            `Try running: ${logger.minorColor("cordova platform add browser")}`,
+        ]);
         reject();
     }
 }).
@@ -69,6 +71,14 @@ const setCustomConfig=(defaultConfig)=>{
         }
         
     }
+}
+
+const getLocalIpAddress=()=>{
+    const os=require("node:os");
+    const networkInterfaces=os.networkInterfaces();
+    const wifiNetwork=networkInterfaces["Wi-Fi"]||networkInterfaces["en0"];
+    const localIP=wifiNetwork?.find(({family})=>family?.toLowerCase()==="ipv4")?.address;
+    return localIP;
 }
 
 /*  const exists=FileSystem.existsSync(projectWebpackConfigPath);

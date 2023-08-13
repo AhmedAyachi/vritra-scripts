@@ -33,7 +33,7 @@ module.exports=(event)=>{
             port:3000,
             open:true,
             static:{
-                directory:path.join("platforms/browser/","www"),
+                directory:path.join(processDir,"platforms/browser/","www"),
             },
             client:{
                 reconnect:5,

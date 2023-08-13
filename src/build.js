@@ -4,7 +4,9 @@ const prepare=require("./subscripts/prepare");
 const webpack=require("webpack");
 const logger=require("./subscripts/logger");
 
-module.exports=(args,log=true)=>prepare([...args,"--env=prod"]).then(({webpackConfig,env})=>{
+module.exports=(args,log=true)=>prepare([...args,"--env=prod"]).
+then(options=>new Promise(resolve=>{
+    const {webpackConfig,env}=options;
     const compiler=webpack(webpackConfig);
     compiler.run(()=>{
         compiler.close(error=>{
@@ -12,11 +14,12 @@ module.exports=(args,log=true)=>prepare([...args,"--env=prod"]).then(({webpackCo
             else{
                 log&&logger.log([
                     `A ${env.name} build was created.`,
-                    `The www folder content updated ${logger.bold(logger.sucessColor("successfully"))}.`,
+                    `The ${logger.minorColor("www")} folder updated ${logger.bold(logger.sucessColor("successfully"))}.`,
                 ]);
             }
+            resolve(options);
         });
     });
-});
+}));
 
 
