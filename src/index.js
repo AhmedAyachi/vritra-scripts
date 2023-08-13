@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 "use strict";
-const logger=require("./subscripts/logger");
 
+const logger=require("./subscripts/logger");
 
 process.on("unhandledRejection",(error)=>{
     throw error;
 });
-
 try{
     const [cmdname,...args]=process.argv.slice(2);
     if(["start","test","build"].includes(cmdname)){

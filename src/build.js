@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 "use strict";
+
 const prepare=require("./subscripts/prepare");
 const webpack=require("webpack");
 const logger=require("./subscripts/logger");
@@ -21,5 +22,3 @@ then(options=>new Promise(resolve=>{
         });
     });
 }));
-
-

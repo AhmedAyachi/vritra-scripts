@@ -1,7 +1,9 @@
-
+#!/usr/bin/env node
+"use strict";
 
 const build=require("./build");
 const phonegap=require("phonegap");
+const cordova=require("cordova-serve")();
 const logger=require("./subscripts/logger");
 const webpack=require("webpack");
 
@@ -13,12 +15,15 @@ then(({webpackConfig,env,ipaddress})=>{
     compiler.watch(webpackConfig.watchOptions,(error)=>{
         if(error){logger.error(error.message)}
         else{
-            const {port}=webpackConfig.devServer;
-            if(!watching){
-                watching=true;
-                logger.logServerInfo({ipaddress,port,env});
-            }
-            phonegap.serve({port,livereload:false});
+            const {devServer}=webpackConfig,{port}=devServer;
+            phonegap.serve({port,livereload:false},()=>{
+                if(!watching){
+                    const {open}=devServer;
+                    watching=true;
+                    logger.logServerInfo({ipaddress,port,env});
+                    open&&cordova.launchBrowser({url:`http://localhost:${port}`});
+                }
+            });
         }
     });
 });

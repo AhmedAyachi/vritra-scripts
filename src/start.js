@@ -6,7 +6,6 @@ const webpack=require("webpack");
 const WebpackDevServer=require("webpack-dev-server");
 const logger=require("./subscripts/logger");
 
-
 module.exports=(args)=>build([...args,"--env=dev"],false).
 then(({webpackConfig,env,ipaddress})=>{
     logger.log(`Starting ${logger.bold("Webpack")} server in development mode ...`);
@@ -26,5 +25,3 @@ then(({webpackConfig,env,ipaddress})=>{
         });
     }); */
 });
-
-

@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "description": "Configuration and scripts for Cherries-themed apps",
   "main": "src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "bin": {
     "cherries-scripts": "./src/index.js"
   },
   "dependencies": {
     "copy-webpack-plugin": "^11.0.0",
+    "cordova-serve": "^4.0.1",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.1",
@@ -22,9 +21,9 @@
     "webpack-dev-server": "^4.15.1"
   },
   "keywords": [
-    "cherries",
-    "scripts",
-    "cherries-scripts"
+    "cherries","scripts",
+    "cherries-scripts",
+    "cordova","phonegap"
   ],
   "author": "Ahmed Ayachi",
   "license": "ISC"

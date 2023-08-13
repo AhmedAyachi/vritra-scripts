@@ -6,7 +6,6 @@ const processDir=process.cwd();
 const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 const logger=require("./logger");
 
-
 module.exports=(args)=>new Promise((resolve,reject)=>{
     let envId;
     const envoption=args.find(arg=>arg.startsWith("--env="));
@@ -17,8 +16,8 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
     else{envId="dev"};
     const isProdEnv=envId==="prod";
     if((!isProdEnv)||FileSystem.existsSync(browserPlatformEntry)){
-        const webpackConfig=require("./webpack.config")({env:envId});
-        Object.assign(webpackConfig,{
+        const defaultConfig=require("./webpack.config")({env:envId});
+        Object.assign(defaultConfig,{
             infrastructureLogging:{
                 level:"error",
                 colors:true,
@@ -32,9 +31,8 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
                 colors:true,
             },
         });
-        setCustomConfig(webpackConfig);
         resolve({
-            webpackConfig,
+            webpackConfig:getCustomizedConfig(defaultConfig),
             env:{id:envId,name:getEnvName(envId)},
             ipaddress:(!isProdEnv)&&getLocalIpAddress(),
         });
@@ -52,25 +50,33 @@ catch(error=>{
     process.exit(1);
 });
 
+
 const getEnvName=(envId)=>{
     if(envId.startsWith("test")) return "testing";
     else if(envId.startsWith("dev")) return "development";
     else return "production";
 }
 
-const setCustomConfig=(defaultConfig)=>{
-    let customConfig;
+const getCustomizedConfig=(defaultConfig)=>{
     const configPath=`${processDir}/webpack.config.js`;
     const exists=FileSystem.existsSync(configPath);
     if(exists){
-        customConfig=require(configPath);
+        const customConfig=require(configPath);
         if(customConfig){
             Object.assign(defaultConfig.devServer,customConfig.devServer);
-            const {plugins}=customConfig;
+            const {plugins,resolve}=customConfig;
             Array.isArray(plugins)&&defaultConfig.plugins.push(...plugins);
+            if(resolve){
+                const defaultResolve=defaultConfig.resolve,{alias}=resolve;
+                if(alias){
+                    defaultResolve.alias={...resolve.alias,...defaultResolve.alias};
+                }
+                defaultConfig.resolve={...resolve,...defaultResolve};
+            }
+            defaultConfig={...customConfig,...defaultConfig};
         }
-        
     }
+    return defaultConfig;
 }
 
 const getLocalIpAddress=()=>{
@@ -80,30 +86,3 @@ const getLocalIpAddress=()=>{
     const localIP=wifiNetwork?.find(({family})=>family?.toLowerCase()==="ipv4")?.address;
     return localIP;
 }
-
-/*  const exists=FileSystem.existsSync(projectWebpackConfigPath);
-    if(exists){
-        log&&logger.log([
-            `A webpack.config.js file ${logger.bold("already exists")}.`,
-            `Using the webpack configuration defined in that file.`,
-        ]);
-        resolve(args);
-    }
-    else{
-        FileSystem.copyFile(__dirname+"/subscripts/webpack.config.js",projectWebpackConfigPath,(error)=>{
-            if(error){
-                if(log){
-                    const {code}=error;
-                    logger.error(`${error.message}`+(code?`#${code}`:""));
-                }
-                reject(error);
-            }
-            else{
-                logger.log([
-                    log&&`A webpack.config.js file was ${logger.bold(logger.sucessColor("successfully"))} created with the default cherries configuration.`,
-                    "Be careful while customizing the file, some configuration is required.",
-                ].filter(Boolean));
-                resolve(args);
-            }
-        });
-    } */
