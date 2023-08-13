@@ -14,7 +14,7 @@ then(options=>new Promise(resolve=>{
             else{
                 log&&logger.log([
                     `A ${env.name} build was created.`,
-                    `The ${logger.minorColor("www")} folder updated ${logger.bold(logger.sucessColor("successfully"))}.`,
+                    `The ${logger.minorColor("www")} folder was ${logger.bold(logger.sucessColor("successfully"))} updated.`,
                 ]);
             }
             resolve(options);

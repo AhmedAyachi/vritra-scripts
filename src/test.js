@@ -1,14 +1,13 @@
 
-//const prepare=require("./subscripts/prepare");
+
 const build=require("./build");
 const phonegap=require("phonegap");
 const logger=require("./subscripts/logger");
 const webpack=require("webpack");
-/* const http=require("http");
-new http.Server() */
 
-module.exports=(args)=>build([...args,"--env=test"],true).
+module.exports=(args)=>build([...args,"--env=test"],false).
 then(({webpackConfig,env,ipaddress})=>{
+    logger.log(`Starting ${logger.bold("Phonegap")} server in testing mode ...`);
     let watching;
     const compiler=webpack(webpackConfig);
     compiler.watch(webpackConfig.watchOptions,(error)=>{
@@ -17,7 +16,7 @@ then(({webpackConfig,env,ipaddress})=>{
             const {port}=webpackConfig.devServer;
             if(!watching){
                 watching=true;
-                logger.logServerInfo({ipaddress,port});
+                logger.logServerInfo({ipaddress,port,env});
             }
             phonegap.serve({port,livereload:false});
         }
