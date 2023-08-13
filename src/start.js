@@ -17,15 +17,7 @@ module.exports=(args)=>prepare([...args,"--env=dev"],true).then(({webpackConfig,
         else{
             const port=logger.bold(devServer.options.port);
             build([`--env=${env.id}`]);
-            logger.log(`You can now view your ${logger.mainColor("cherries-app")} in the browser.`);
-            logger.log([
-                `${logger.bold("Local:")}           http://${"localhost"}:${port}`,
-                ipaddress&&`${logger.bold("On Your Network:")} http://${ipaddress}:${port}`,
-            ].filter(Boolean),2);
-            logger.log([
-                "Note that the development build is not optimized.",
-                `To create a production build, use ${logger.minorColor("npm run build")}.`
-            ]);
+            logger.logServerInfo({ipaddress,port});
         }
     });
     ["SIGINT","SIGUSR1","SIGUSR2"].forEach(eventName=>{

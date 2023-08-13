@@ -7,16 +7,16 @@ const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 const logger=require("./logger");
 
 
-module.exports=(args,checkBrowserPlatform)=>new Promise((resolve,reject)=>{
-    const hasBrowserPlatform=(!checkBrowserPlatform)||FileSystem.existsSync(browserPlatformEntry);
-    if(hasBrowserPlatform){
-        let envId;
-        const envoption=args.find(arg=>arg.startsWith("--env="));
-        if(envoption){
-            const value=envoption.split("=")[1];
-            envId=value||"dev";
-        }
-        else{envId="dev"};
+module.exports=(args)=>new Promise((resolve,reject)=>{
+    let envId;
+    const envoption=args.find(arg=>arg.startsWith("--env="));
+    if(envoption){
+        const value=envoption.split("=")[1];
+        envId=value||"dev";
+    }
+    else{envId="dev"};
+    const isProdEnv=envId==="prod";
+    if((!isProdEnv)||FileSystem.existsSync(browserPlatformEntry)){
         const webpackConfig=require("./webpack.config")({env:envId});
         Object.assign(webpackConfig,{
             infrastructureLogging:{
@@ -36,7 +36,7 @@ module.exports=(args,checkBrowserPlatform)=>new Promise((resolve,reject)=>{
         resolve({
             webpackConfig,
             env:{id:envId,name:getEnvName(envId)},
-            ipaddress:checkBrowserPlatform&&getLocalIpAddress(),
+            ipaddress:(!isProdEnv)&&getLocalIpAddress(),
         });
     }
     else{
