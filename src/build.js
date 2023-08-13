@@ -1,27 +1,22 @@
 #!/usr/bin/env node
 "use strict";
-const prepare=require("./prepare");
+const prepare=require("./subscripts/prepare");
 const webpack=require("webpack");
-const getWebpackConfig=require("./getWebpackConfig");
-const runtime=require("webpack/lib/logging/runtime");
+const logger=require("./subscripts/logger");
 
-module.exports=(args)=>prepare(args).then(()=>{
-    let env;
-    const envoption=args.find(arg=>arg.startsWith("--env="));
-    if(envoption){
-        const [key,value]=envoption.split("=");
-        env=value||"prod";
-    }
-    else{env="prod"};
-    const webpackConfig=getWebpackConfig({env});
+module.exports=(args,log=true)=>prepare([...args,"--env=prod"]).then(({webpackConfig,env})=>{
     const compiler=webpack(webpackConfig);
     compiler.run(()=>{
         compiler.close(error=>{
-            if(error){console.error(error)}
+            if(error){logger.error(error.message)}
             else{
-                runtime.getLogger("logger").error("azdazd");
+                log&&logger.log([
+                    `A ${env.name} build was created.`,
+                    `The www folder content updated ${logger.bold(logger.sucessColor("successfully"))}.`,
+                ]);
             }
         });
     });
 });
+
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 "use strict";
+const logger=require("./subscripts/logger");
 
 
 process.on("unhandledRejection",(error)=>{
@@ -8,16 +9,19 @@ process.on("unhandledRejection",(error)=>{
 
 try{
     const [cmdname,...args]=process.argv.slice(2);
-    const command=require(__dirname+"/"+cmdname+".js");
-    if(typeof(command)==="function"){
+    if(["start","test","build"].includes(cmdname)){
+        const command=require(__dirname+"/"+cmdname+".js");
         command(args);
     }
     else{
-        throw new Error("no such command");
+        logger.error("No such command");
+        logger.log([
+            "Available commands: start, test and build",
+        ]);
     }
     
 }
 catch(error){
-    console.error(error.message);
+    logger.error("error: "+error.message);
     process.exit(0);
 }

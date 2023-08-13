@@ -4,9 +4,10 @@ const webpack=require("webpack");
 const TerserPlugin=require("terser-webpack-plugin");
 const HTMLPlugin=require("html-webpack-plugin");
 const CopyPlugin=require("copy-webpack-plugin");
+const processDir=process.cwd();
 const webviews=[
     {name:"MainView",file:"index.html"},
-    ...require("./src/WebViews/WebViews"),
+    ...require(`${processDir}/src/WebViews/WebViews`),
 ];
 
 module.exports=(event)=>{
@@ -24,7 +25,7 @@ module.exports=(event)=>{
             return entry;
         })(),
         output:{
-            path:path.resolve(__dirname,"www"),
+            path:path.resolve(processDir,"www"),
             filename:"[name].js",
         },
         devServer:{
@@ -66,9 +67,9 @@ module.exports=(event)=>{
                 {
                     test: /\.css$/,
                     use:[
-                        "style-loader",
+                        require.resolve("style-loader"),
                         {
-                            loader:"css-loader",
+                            loader:require.resolve("css-loader"),
                             options:{
                                 modules:{
                                     mode:"local",
@@ -81,7 +82,7 @@ module.exports=(event)=>{
                 },
                 {
                     test: /\.(jpe?g|png|gif|svg|mp4)$/i,
-                    loader:"file-loader",
+                    loader:require.resolve("file-loader"),
                     options:{
                         name:"Assets/[name]_[hash].[ext]",
                     },
@@ -105,12 +106,12 @@ module.exports=(event)=>{
         },
         resolve:{
             alias:{
-                "assets":path.resolve(__dirname,"src/Assets/index.js"),
-                "screens":path.resolve(__dirname,"src/Screens/index.js"),
-                "actions":path.resolve(__dirname,"src/Store/Actions/index.js"),
-                "resources":path.resolve(__dirname,"src/Resources/index.js"),
-                "components":path.resolve(__dirname,"src/Components/index.js"),
-                "localdb":isDevEnv&&path.resolve(__dirname,"src/LocalDB/index.js"),
+                "assets":path.resolve(processDir,"src/Assets/index.js"),
+                "screens":path.resolve(processDir,"src/Screens/index.js"),
+                "actions":path.resolve(processDir,"src/Store/Actions/index.js"),
+                "resources":path.resolve(processDir,"src/Resources/index.js"),
+                "components":path.resolve(processDir,"src/Components/index.js"),
+                "localdb":isDevEnv&&path.resolve(processDir,"src/LocalDB/index.js"),
             },
         },
     };
@@ -124,7 +125,7 @@ const templateContent=`
     <meta name="format-detection" content="telephone=no"/>
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width,viewport-fit=cover"/>
-    <title></title>
+    <title>Cherries App</title>
     <link rel="stylesheet" type="text/css" href="./Fonts/index.css"/>
 </head>
 <body>
