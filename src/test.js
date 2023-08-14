@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 "use strict";
 
-const build=require("./build");
+const prepare=require("./subscripts/prepare");
 const phonegap=require("phonegap");
 const cordova=require("cordova-serve")();
 const logger=require("./subscripts/logger");
 const webpack=require("webpack");
 
-module.exports=(args)=>build([...args,"--env=test"],false).
+module.exports=(args)=>prepare([...args,"--env=test"]).
 then(({webpackConfig,env,ipaddress})=>{
     logger.log(`Starting ${logger.bold("Phonegap")} server in testing mode ...`);
     let watching;
