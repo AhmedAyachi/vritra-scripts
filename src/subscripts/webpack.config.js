@@ -11,10 +11,10 @@ const webviews=[
 ];
 
 module.exports=(event)=>{
-    const {env}=event;
-    const isDevEnv=env.startsWith("dev");
-    const isTestEnv=env.startsWith("test");
-    const isProdEnv=env.startsWith("prod");
+    const {env}=event,envId=env.id;
+    const isDevEnv=envId.startsWith("dev");
+    const isTestEnv=envId.startsWith("test");
+    const isProdEnv=envId.startsWith("prod");
     return {
         mode:isProdEnv?"production":"development",
         entry:(()=>{

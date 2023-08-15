@@ -14,9 +14,10 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
         envId=value||"dev";
     }
     else{envId="dev"};
+    const env={id:envId,name:getEnvName(envId)};
     const isProdEnv=envId==="prod";
     if((!isProdEnv)||FileSystem.existsSync(browserPlatformEntry)){
-        const defaultConfig=require("./webpack.config")({env:envId});
+        const defaultConfig=require("./webpack.config")({env});
         Object.assign(defaultConfig,{
             infrastructureLogging:{
                 level:"error",
@@ -33,8 +34,7 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
         });
         resolve({
             webpackConfig:getCustomizedConfig(defaultConfig),
-            env:{id:envId,name:getEnvName(envId)},
-            ipaddress:(!isProdEnv)&&getLocalIpAddress(),
+            ipaddress:(!isProdEnv)&&getLocalIpAddress(),env,
         });
     }
     else{
