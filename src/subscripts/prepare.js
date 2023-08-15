@@ -5,6 +5,7 @@ const FileSystem=require("fs");
 const processDir=process.cwd();
 const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 const logger=require("./logger");
+const webpack=require("webpack");
 
 module.exports=(args)=>new Promise((resolve,reject)=>{
     let envId;
@@ -14,32 +15,18 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
         envId=value||"dev";
     }
     else{envId="dev"};
-    const env={id:envId,name:getEnvName(envId)};
-    const isProdEnv=envId==="prod";
+    const env={id:envId,name:getEnvName(envId)},isProdEnv=envId==="prod";
     if((!isProdEnv)||FileSystem.existsSync(browserPlatformEntry)){
-        const defaultConfig=require("./webpack.config")({env});
-        Object.assign(defaultConfig,{
-            infrastructureLogging:{
-                level:"error",
-                colors:true,
-                console:{
-                    error:"red",
-                },
-            },
-            stats:{
-                all:false,
-                logging:false,
-                colors:true,
-            },
-        });
+        const defaultConfig=require("./webpack.config.js")(env);
+        const customConfig=getWebPackCustomConfig(env,args);
         resolve({
-            webpackConfig:getCustomizedConfig(defaultConfig),
+            webpackConfig:getWebPackConfig(defaultConfig,customConfig),
             ipaddress:(!isProdEnv)&&getLocalIpAddress(),env,
         });
     }
     else{
         logger.log([
-            "Browser platform is required to run a development server.",
+            `Browser platform is required to run a ${env.name} server.`,
             `Try running: ${logger.minorColor("cordova platform add browser")}`,
         ]);
         reject();
@@ -57,26 +44,36 @@ const getEnvName=(envId)=>{
     else return "production";
 }
 
-const getCustomizedConfig=(defaultConfig)=>{
-    const configPath=`${processDir}/webpack.config.js`;
-    const exists=FileSystem.existsSync(configPath);
-    if(exists){
-        const customConfig=require(configPath);
-        if(customConfig){
-            Object.assign(defaultConfig.devServer,customConfig.devServer);
-            const {plugins,resolve}=customConfig;
-            Array.isArray(plugins)&&defaultConfig.plugins.push(...plugins);
-            if(resolve){
-                const defaultResolve=defaultConfig.resolve,{alias}=resolve;
-                if(alias){
-                    defaultResolve.alias={...resolve.alias,...defaultResolve.alias};
-                }
-                defaultConfig.resolve={...resolve,...defaultResolve};
+const getWebPackConfig=(defaultConfig,customConfig)=>{
+    if(customConfig){
+        Object.assign(defaultConfig.devServer,customConfig.devServer);
+        const {plugins,resolve,definitions}=customConfig;
+        Array.isArray(plugins)&&defaultConfig.plugins.push(...plugins);
+        if(resolve){
+            const defaultResolve=defaultConfig.resolve,{alias}=resolve;
+            if(alias){
+                defaultResolve.alias={...resolve.alias,...defaultResolve.alias};
             }
-            defaultConfig={...customConfig,...defaultConfig};
+            defaultConfig.resolve={...resolve,...defaultResolve};
         }
+        if(definitions){
+            delete customConfig.definitions;
+            defaultConfig.plugins.unshift(new webpack.DefinePlugin(definitions));
+        }
+        defaultConfig={...customConfig,...defaultConfig};
     }
     return defaultConfig;
+}
+
+const getWebPackCustomConfig=(env,args)=>{
+    let customConfig;
+    const configPath=`${processDir}/cherries.config.js`;
+    const exists=FileSystem.existsSync(configPath);
+    if(exists){
+        const customConfigExport=require(configPath);
+        customConfig=typeof(customConfigExport)==="function"?customConfigExport({env,args}):customConfigExport;
+    }
+    return customConfig;
 }
 
 const getLocalIpAddress=()=>{

@@ -10,11 +10,10 @@ const webviews=[
     ...require(`${processDir}/src/WebViews/WebViews`),
 ];
 
-module.exports=(event)=>{
-    const {env}=event,envId=env.id;
-    const isDevEnv=envId.startsWith("dev");
-    const isTestEnv=envId.startsWith("test");
-    const isProdEnv=envId.startsWith("prod");
+module.exports=({id})=>{
+    const isDevEnv=id.startsWith("dev");
+    const isTestEnv=id.startsWith("test");
+    const isProdEnv=id.startsWith("prod");
     return {
         mode:isProdEnv?"production":"development",
         entry:(()=>{
@@ -46,10 +45,7 @@ module.exports=(event)=>{
             },
         },
         plugins:[
-            new webpack.DefinePlugin({
-                //Define more env-vars here
-                isDevEnv,isTestEnv,isProdEnv,
-            }),
+            new webpack.DefinePlugin({isDevEnv,isTestEnv,isProdEnv}),
             ...webviews.map(webview=>new HTMLPlugin({
                 templateContent,
                 title:webview.name,
@@ -113,6 +109,18 @@ module.exports=(event)=>{
                 "components":path.resolve(processDir,"src/Components/index.js"),
                 "localdb":isDevEnv&&path.resolve(processDir,"src/LocalDB/index.js"),
             },
+        },
+        infrastructureLogging:{
+            level:"error",
+            colors:true,
+            console:{
+                error:"red",
+            },
+        },
+        stats:{
+            all:false,
+            logging:false,
+            colors:true,
         },
     };
 }

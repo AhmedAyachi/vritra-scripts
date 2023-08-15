@@ -8,7 +8,7 @@ process.on("unhandledRejection",(error)=>{
 });
 try{
     const [cmdname,...args]=process.argv.slice(2);
-    if(["start","test","build"].includes(cmdname)){
+    if(["start","test","build","extract"].includes(cmdname)){
         const command=require("./"+cmdname+".js");
         command(args);
     }
