@@ -10,28 +10,24 @@ const processDir=process.cwd();
 
 
 module.exports=(args)=>build([...args,"--env=test"],false).
-then(({webpackConfig,env,ipaddress})=>{
+then(({webpackConfig,env,ipaddress})=>new Promise((resolve,reject)=>{
     logger.log(`Starting ${logger.bold("Phonegap")} server in testing mode ...`);
-    let watching;
     webpackConfig.output.path=webpackConfig.devServer.static.directory;
     const compiler=Webpack(webpackConfig);
     compiler.watch(webpackConfig.watchOptions,(error)=>{
-        if(error){logger.error(error.message)}
+        if(error){reject(error)}
         else{
             const {devServer}=webpackConfig,{port}=devServer;
             process.cwd=()=>processDir+"/platforms/browser/";
             phonegap.serve({...phonegapOptions,port}).
-            on("complete",(error,data)=>{
-                if(!watching){
-                    watching=true;
-                    logger.logServerInfo({ipaddress,port,env});
-                    devServer.open&&cordova.launchBrowser({url:`http://localhost:${port}`});
-                }
+            once("complete",()=>{
+                logger.logServerInfo({ipaddress,port,env});
+                devServer.open&&cordova.launchBrowser({url:`http://localhost:${port}`});
             });
             process.cwd=()=>processDir;
         }
     });
-});
+}));
 
 const phonegapOptions={
     browser:true,

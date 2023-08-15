@@ -19,9 +19,4 @@ then(({webpackConfig,env,ipaddress})=>{
             logger.logServerInfo({ipaddress,port,env});
         }
     });
-    /* ["SIGINT","SIGUSR1","SIGUSR2"].forEach(eventName=>{
-        process.on(eventName,()=>{
-            build([`--env=${env.id}`]);
-        });
-    }); */
 });
