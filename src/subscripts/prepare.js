@@ -8,14 +8,7 @@ const logger=require("./logger");
 const webpack=require("webpack");
 
 module.exports=(args)=>new Promise((resolve,reject)=>{
-    let envId;
-    const envoption=args.find(arg=>arg.startsWith("--env="));
-    if(envoption){
-        const value=envoption.split("=")[1];
-        envId=value||"dev";
-    }
-    else{envId="dev"};
-    const env={id:envId,name:getEnvName(envId)},isProdEnv=envId==="prod";
+    const env=getEnv(args),isProdEnv=env.id==="prod";
     if((!isProdEnv)||FileSystem.existsSync(browserPlatformEntry)){
         const defaultConfig=require("./webpack.config.js")(env);
         const customConfig=getWebPackCustomConfig(env,args);
@@ -36,13 +29,6 @@ catch(error=>{
     logger.error(error.message);
     process.exit(1);
 });
-
-
-const getEnvName=(envId)=>{
-    if(envId.startsWith("test")) return "testing";
-    else if(envId.startsWith("dev")) return "development";
-    else return "production";
-}
 
 const getWebPackConfig=(defaultConfig,customConfig)=>{
     if(customConfig){
@@ -74,6 +60,27 @@ const getWebPackCustomConfig=(env,args)=>{
         customConfig=typeof(customConfigExport)==="function"?customConfigExport({env,args}):customConfigExport;
     }
     return customConfig;
+}
+
+const envIds=["dev","test","prod"];
+const getEnv=(args)=>{
+    let envId;
+    const envoption=args.find(arg=>arg.startsWith("--env="));
+    if(envoption){
+        const value=envoption.substring(envoption.indexOf("=")+1);
+        envId=envIds.includes(value)?value:"dev";
+    }
+    else{
+        envId="dev";
+    };
+    return {
+        id:envId,
+        name:(()=>{
+            if(envId.startsWith("test")) return "testing";
+            else if(envId.startsWith("dev")) return "development";
+            else return "production";
+        })(),
+    }
 }
 
 const getLocalIpAddress=()=>{
