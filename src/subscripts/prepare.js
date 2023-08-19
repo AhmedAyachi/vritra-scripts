@@ -65,10 +65,16 @@ const getWebPackCustomConfig=(env,args)=>{
 const envIds=["dev","test","prod"];
 const getEnv=(args)=>{
     let envId;
-    const envoption=args.find(arg=>arg.startsWith("--env="));
+    const envoption=args.find(arg=>arg.startsWith("--env=")||arg.match(/^-(d|t|p)$/g));    
     if(envoption){
-        const value=envoption.substring(envoption.indexOf("=")+1);
-        envId=envIds.includes(value)?value:"dev";
+        if(envoption.length===2){
+            const char=envoption[1];
+            envId=envIds.find(id=>id.startsWith(char));
+        }
+        else{
+            const value=envoption.substring(envoption.indexOf("=")+1);
+            envId=envIds.includes(value)?value:"dev";
+        }
     }
     else{
         envId="dev";

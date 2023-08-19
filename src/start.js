@@ -11,13 +11,19 @@ const processDir=process.cwd();
 
 module.exports=(args)=>build([...args,"--env=dev"],false).
 then(data=>{
-    const isTestEnv=data.env.id==="test";
-    return (isTestEnv?startPhonegapServer:startWebPackServer)(data);
+    const {env}=data,envId=env.id;
+    if(envId==="prod"){
+        return Promise.reject({message:"Can not execute the start command in production mode"});
+    }
+    else{
+        const isDevEnv=data.env.id==="dev";
+        logger.log(`Starting ${logger.bold(isDevEnv?"Webpack":"Phonegap")} server in ${env.name} mode ...`);
+        return (isDevEnv?startWebPackServer:startPhonegapServer)(data);
+    }
 });
 
 const startWebPackServer=(data)=>new Promise((resolve,reject)=>{
     const {webpackConfig,env,ipaddress}=data;
-    logger.log(`Starting ${logger.bold("Webpack")} server in development mode ...`);
     const devServer=new WebpackDevServer(webpackConfig.devServer,Webpack(webpackConfig));
     devServer.startCallback(error=>{
         if(error){reject(error)}
@@ -31,7 +37,6 @@ const startWebPackServer=(data)=>new Promise((resolve,reject)=>{
 
 const startPhonegapServer=(data)=>new Promise((resolve,reject)=>{
     const {webpackConfig,env,ipaddress}=data;
-    logger.log(`Starting ${logger.bold("Phonegap")} server in testing mode ...`);
     webpackConfig.output.path=webpackConfig.devServer.static.directory;
     const compiler=Webpack(webpackConfig);
     compiler.watch(webpackConfig.watchOptions,(error)=>{
