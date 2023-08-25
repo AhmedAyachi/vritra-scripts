@@ -17,6 +17,6 @@ new Promise((_,reject)=>{
     }
 }).
 catch(error=>{
-    logger.error(error?.message||"unknown error");
+    error&&logger.error(error.message||"unknown error");
     process.exit(1);
 });

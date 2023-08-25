@@ -12,11 +12,13 @@ then(options=>new Promise((resolve,reject)=>{
     compiler.run(()=>{
         compiler.close(error=>{
             if(error){reject(error)}
-            else{
-                log&&logger.log([
+            else if(log){
+                const isNotProdEnv=env.id!=="prod";
+                logger.log([
                     `A ${env.name} build was created.`,
                     `The ${logger.minorColor("www")} folder was ${logger.bold(logger.sucessColor("successfully"))} updated.`,
                 ]);
+                isNotProdEnv&&logger.log(logger.getBuildNotice(env));
             }
             resolve(options);
         });

@@ -16,7 +16,7 @@ module.exports={
         console.log();
     },
     error:function(text){
-        this.log(`${this.bold(this.errorColor("Error:"))} ${this.errorColor(text)}`);
+        this.log(`${this.bold(this.errorColor("Error:"))} ${text}`);
     },
     bold:(text)=>`\x1b[1m${text}\x1b[0m`,
     mainColor:(text)=>`\x1b[91m${text}\x1b[0m`,
@@ -30,9 +30,12 @@ module.exports={
             `${this.bold("Local:")}           http://${"localhost"}:${port}`,
             ipaddress&&`${this.bold("On Your Network:")} http://${ipaddress}:${port}`,
         ].filter(Boolean),2);
-        this.log([
+        this.log(this.getBuildNotice(env));
+    },
+    getBuildNotice:function(env){
+        return [
             `Note that the ${env.name} build is not optimized.`,
             `To create a production build, use ${this.minorColor("npm run build")}.`
-        ]);
-    },
+        ];
+    }
 }

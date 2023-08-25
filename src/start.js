@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
+const FileSystem=require("fs");
 const Webpack=require("webpack");
 const WebpackDevServer=require("webpack-dev-server");
 const build=require("./build");
@@ -8,6 +9,7 @@ const phonegap=require("connect-phonegap");
 const cordova=require("cordova-serve")();
 const logger=require("./subscripts/logger");
 const processDir=process.cwd();
+const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 
 module.exports=(args)=>build([...args,"--env=dev"],false).
 then(data=>{
@@ -15,10 +17,17 @@ then(data=>{
     if(envId==="prod"){
         return Promise.reject({message:"Can not execute the start command in production mode"});
     }
-    else{
-        const isDevEnv=data.env.id==="dev";
+    else if(FileSystem.existsSync(browserPlatformEntry)){
+        const isDevEnv=(envId==="dev");
         logger.log(`Starting ${logger.bold(isDevEnv?"Webpack":"Phonegap")} server in ${env.name} mode ...`);
         return (isDevEnv?startWebPackServer:startPhonegapServer)(data);
+    }
+    else{
+        logger.log([
+            `Browser platform is required to run a ${env.name} server.`,
+            `Try running: ${logger.minorColor("cordova platform add browser")}`,
+        ]);
+        return Promise.reject();
     }
 });
 

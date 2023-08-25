@@ -2,32 +2,18 @@
 "use strict";
 
 const FileSystem=require("fs");
-const processDir=process.cwd();
-const browserPlatformEntry=`${processDir}/platforms/browser/www`;
-const logger=require("./logger");
 const webpack=require("webpack");
+const processDir=process.cwd();
+const envIds=["dev","test","prod"];
 
 module.exports=(args)=>new Promise((resolve,reject)=>{
-    const env=getEnv(args),isProdEnv=env.id==="prod";
-    if((!isProdEnv)||FileSystem.existsSync(browserPlatformEntry)){
-        const defaultConfig=require("./webpack.config.js")(env);
-        const customConfig=getWebPackCustomConfig(env,args);
-        resolve({
-            webpackConfig:getWebPackConfig(defaultConfig,customConfig),
-            ipaddress:(!isProdEnv)&&getLocalIpAddress(),env,
-        });
-    }
-    else{
-        logger.log([
-            `Browser platform is required to run a ${env.name} server.`,
-            `Try running: ${logger.minorColor("cordova platform add browser")}`,
-        ]);
-        reject();
-    }
-}).
-catch(error=>{
-    logger.error(error.message);
-    process.exit(1);
+    const env=getEnv(args),isProdEnv=(env.id==="prod");
+    const defaultConfig=require("./webpack.config.js")(env);
+    const customConfig=getWebPackCustomConfig(env,args);
+    resolve({
+        webpackConfig:getWebPackConfig(defaultConfig,customConfig),
+        ipaddress:(!isProdEnv)&&getLocalIpAddress(),env,
+    });
 });
 
 const getWebPackConfig=(defaultConfig,customConfig)=>{
@@ -62,7 +48,6 @@ const getWebPackCustomConfig=(env,args)=>{
     return customConfig;
 }
 
-const envIds=["dev","test","prod"];
 const getEnv=(args)=>{
     let envId;
     const envoption=args.find(arg=>arg.startsWith("--env=")||arg.match(/^-(d|t|p)$/g));    
