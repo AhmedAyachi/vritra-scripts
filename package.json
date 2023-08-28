@@ -1,11 +1,11 @@
 {
-  "name": "cherries-scripts",
+  "name": "corella-scripts",
   "version": "1.0.0",
-  "description": "Configuration and scripts for Cherries-themed apps",
+  "description": "Configuration and scripts for corella-themed apps",
   "main": "src/index.js",
   "scripts": {},
   "bin": {
-    "cherries-scripts": "./src/index.js"
+    "corella-scripts": "./src/index.js"
   },
   "dependencies": {
     "connect-phonegap": "^0.25.0",
@@ -20,9 +20,9 @@
     "webpack-dev-server": "^4.15.1"
   },
   "keywords": [
-    "cherries",
+    "corella",
     "scripts",
-    "cherries-scripts",
+    "corella-scripts",
     "cordova",
     "phonegap"
   ],

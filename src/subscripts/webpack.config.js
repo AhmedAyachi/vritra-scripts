@@ -133,7 +133,7 @@ const templateContent=`
     <meta name="format-detection" content="telephone=no"/>
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width,viewport-fit=cover"/>
-    <title>Cherries App</title>
+    <title>Corella App</title>
     <link rel="stylesheet" type="text/css" href="./Fonts/index.css"/>
 </head>
 <body>
