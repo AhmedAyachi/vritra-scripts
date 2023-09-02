@@ -1,6 +1,6 @@
 {
   "name": "corella-scripts",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Configuration and scripts for corella-themed apps",
   "main": "src/index.js",
   "scripts": {},
