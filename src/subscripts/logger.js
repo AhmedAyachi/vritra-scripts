@@ -21,6 +21,7 @@ module.exports={
     bold:(text)=>`\x1b[1m${text}\x1b[0m`,
     mainColor:(text)=>`\x1b[91m${text}\x1b[0m`,
     minorColor:(text)=>`\x1b[95m${text}\x1b[0m`,
+    accentColor:(text)=>`\x1b[96m${text}\x1b[0m`,
     sucessColor:(text)=>`\x1b[32m${text}\x1b[0m`,
     errorColor:(text)=>`\x1b[31m${text}\x1b[0m`,
     logServerInfo:function({ipaddress,port,env}){

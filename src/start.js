@@ -41,7 +41,7 @@ const startWebPackServer=(data)=>new Promise((resolve,reject)=>{
             logger.logServerInfo({ipaddress,port,env});
             resolve();
         }
-    })
+    });
 });
 
 const startPhonegapServer=(data)=>new Promise((resolve,reject)=>{
