@@ -14,18 +14,18 @@ then(options=>new Promise((resolve,reject)=>{
     compiler.watch(webpackConfig.watchOptions,(error)=>{
         if(error){reject(error)}
         else{
-            if(!index){
+            if(index){
+                const now=new Date(Date.now());
+                const hours=now.getHours(),minutes=now.getMinutes(),seconds=now.getSeconds();
+                const time=[hours,minutes,seconds].map(number=>number>9?number:("0"+number)).join(":");
+                logger.log(`${index}. www folder ${logger.bold(logger.sucessColor("successfully"))} updated at ${logger.accentColor(time)}.`);
+            } 
+            else{
                 logger.log([
                     `${logger.mainColor("Corella")} is now watching your ${logger.minorColor("src")} folder for changes.`,
                     `The ${logger.minorColor("www")} folder content will get updated accordingly.`
                 ]);
                 resolve(options);
-            }
-            else if(index%2===0){
-                const now=new Date(Date.now());
-                const hours=now.getHours(),minutes=now.getMinutes(),seconds=now.getSeconds();
-                const time=[hours,minutes,seconds].map(number=>number>9?number:("0"+number)).join(":");
-                logger.log(`${index/2}. www folder ${logger.bold(logger.sucessColor("successfully"))} updated at ${logger.accentColor(time)}.`);
             }
             index++;
         }
