@@ -1,10 +1,10 @@
 {
-  "name": "corella-scripts",
-  "version": "0.0.3",
-  "description": "Configuration and scripts for corella-themed apps",
+  "name": "wurm-scripts",
+  "version": "0.0.1",
+  "description": "Configuration and scripts for wurm-themed apps",
   "main": "src/index.js",
   "bin": {
-    "corella-scripts": "./src/index.js"
+    "wurm-scripts": "./src/index.js"
   },
   "dependencies": {
     "connect-phonegap": "^0.25.0",
@@ -19,9 +19,9 @@
     "webpack-dev-server": "^4.15.1"
   },
   "keywords": [
-    "corella",
+    "wurm",
     "scripts",
-    "corella-scripts",
+    "wurm-scripts",
     "cordova",
     "phonegap"
   ],

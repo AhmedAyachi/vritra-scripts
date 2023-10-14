@@ -22,7 +22,7 @@ then(options=>new Promise((resolve,reject)=>{
             } 
             else{
                 logger.log([
-                    `${logger.mainColor("Corella")} is now watching your ${logger.minorColor("src")} folder for changes.`,
+                    `${logger.mainColor("Wurm")} is now watching your ${logger.minorColor("src")} folder for changes.`,
                     `The ${logger.minorColor("www")} folder content will get updated accordingly.`
                 ]);
                 resolve(options);
