@@ -39,7 +39,7 @@ const getWebPackConfig=(defaultConfig,customConfig)=>{
 
 const getWebPackCustomConfig=(env,args)=>{
     let customConfig;
-    const configPath=`${processDir}/wurm.config.js`;
+    const configPath=`${processDir}/vritra.config.js`;
     const exists=FileSystem.existsSync(configPath);
     if(exists){
         const customConfigExport=require(configPath);

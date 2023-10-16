@@ -1,10 +1,10 @@
 {
-  "name": "wurm-scripts",
+  "name": "vritra-scripts",
   "version": "0.0.1",
-  "description": "Configuration and scripts for wurm-themed apps",
+  "description": "Configuration and scripts for vritra-themed apps",
   "main": "src/index.js",
   "bin": {
-    "wurm-scripts": "./src/index.js"
+    "vritra-scripts": "./src/index.js"
   },
   "dependencies": {
     "connect-phonegap": "^0.25.0",
@@ -19,12 +19,12 @@
     "webpack-dev-server": "^4.15.1"
   },
   "keywords": [
-    "wurm",
+    "vritra",
     "scripts",
-    "wurm-scripts",
+    "vritra-scripts",
     "cordova",
     "phonegap"
   ],
   "author": "Ahmed Ayachi",
-  "license": "ISC"
+  "license": "MIT"
 }

@@ -25,7 +25,7 @@ module.exports={
     sucessColor:(text)=>`\x1b[32m${text}\x1b[0m`,
     errorColor:(text)=>`\x1b[31m${text}\x1b[0m`,
     logServerInfo:function({ipaddress,port,env}){
-        this.log(`You can now view your ${this.mainColor("wurm-app")} in the browser.`);
+        this.log(`You can now view your ${this.mainColor("vritra-app")} in the browser.`);
         port=this.bold(port);
         this.log([
             `${this.bold("Local:")}           http://${"localhost"}:${port}`,

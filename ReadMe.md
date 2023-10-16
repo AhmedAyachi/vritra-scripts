@@ -1,3 +1,3 @@
 
-# Wurm
-Configuration and scripts for wurm-themed apps
+# Vritra Scripts
+Configuration and scripts for vritra-themed apps
