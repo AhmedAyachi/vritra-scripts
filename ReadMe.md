@@ -2,4 +2,4 @@
 
 Configuration and scripts for vritra-themed apps
 
-[See documentation](https://ahmedayachi.github.io/VritraDocs/#getstarted#availablescripts)
+[See documentation](https://vritrajs.github.io/#getstarted#availablescripts)
