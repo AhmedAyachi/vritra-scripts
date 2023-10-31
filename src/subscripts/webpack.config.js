@@ -47,7 +47,7 @@ module.exports=({id})=>{
         plugins:[
             new webpack.DefinePlugin({isDevEnv,isTestEnv,isProdEnv}),
             ...webviews.map(webview=>new HTMLPlugin({
-                templateContent,
+                templateContent:getTemplateContent(!isProdEnv),
                 title:webview.name,
                 inject:"body",
                 minify:isProdEnv,
@@ -125,7 +125,7 @@ module.exports=({id})=>{
     };
 }
 
-const templateContent=`
+const getTemplateContent=(setIcon)=>`
 <!DOCTYPE html>
 <html>
 <head>
@@ -134,6 +134,7 @@ const templateContent=`
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width,viewport-fit=cover"/>
     <title>Vritra App</title>
+    ${setIcon?`<link rel="icon" href="https://raw.githubusercontent.com/AhmedAyachi/RepoIllustrations/f7ee069a965d3558e0e7e2b7e6733d1a642c78c2/Vritra/Icon.svg"/>`:""}
     <link rel="stylesheet" type="text/css" href="./Fonts/index.css"/>
 </head>
 <body>
