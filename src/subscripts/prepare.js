@@ -20,7 +20,6 @@ const getWebPackConfig=(defaultConfig,customConfig)=>{
     if(customConfig){
         Object.assign(defaultConfig.devServer,customConfig.devServer);
         const {plugins,resolve,definitions,ignore}=customConfig;
-        Array.isArray(plugins)&&defaultConfig.plugins.push(...plugins);
         if(resolve){
             const defaultResolve=defaultConfig.resolve,{alias}=resolve;
             if(alias){
@@ -32,29 +31,23 @@ const getWebPackConfig=(defaultConfig,customConfig)=>{
             delete customConfig.definitions;
             defaultConfig.plugins.unshift(new webpack.DefinePlugin(definitions));
         }
-        if(ignore){
+        if(Array.isArray(ignore)){
             delete customConfig.ignore;
-            const ignored=[];
-            for(const key in ignore){
-                const value=ignore[key];
+            const ignores=[];
+            for(const value of ignore){
                 let config;
-                switch(typeof(value)){
-                    case "string":
-                        config={resourceRegExp:new RegExp(`^${value}$`)}
-                        break;
-                    case "object":
-                        config=value;
-                        break;
-                    default:
-                        if(value instanceof RegExp){
-                            config={resourceRegExp:value};
-                        }
-                    break;
+                if(typeof(value)==="string"){
+                    config={resourceRegExp:new RegExp(`^${value}$`)};
                 }
-                config&&ignored.push(config);
+                else{
+                    config=value instanceof RegExp?{resourceRegExp:value}:value;
+                }
+                config&&ignores.push(new webpack.IgnorePlugin(config));
             }
-            defaultConfig.plugins.unshift(...ignored.map($=>new webpack.IgnorePlugin($)));
+            defaultConfig.plugins.unshift(...ignores);
         }
+        Array.isArray(plugins)&&defaultConfig.plugins.push(...plugins);
+
         defaultConfig={...customConfig,...defaultConfig};
     }
     return defaultConfig;
