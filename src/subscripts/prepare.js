@@ -19,7 +19,7 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
 const getWebPackConfig=(defaultConfig,customConfig)=>{
     if(customConfig){
         Object.assign(defaultConfig.devServer,customConfig.devServer);
-        const {plugins,resolve,definitions}=customConfig;
+        const {plugins,resolve,definitions,ignore}=customConfig;
         Array.isArray(plugins)&&defaultConfig.plugins.push(...plugins);
         if(resolve){
             const defaultResolve=defaultConfig.resolve,{alias}=resolve;
@@ -31,6 +31,29 @@ const getWebPackConfig=(defaultConfig,customConfig)=>{
         if(definitions){
             delete customConfig.definitions;
             defaultConfig.plugins.unshift(new webpack.DefinePlugin(definitions));
+        }
+        if(ignore){
+            delete customConfig.ignore;
+            const ignored=[];
+            for(const key in ignore){
+                const value=ignore[key];
+                let config;
+                switch(typeof(value)){
+                    case "string":
+                        config={resourceRegExp:new RegExp(`^${value}$`)}
+                        break;
+                    case "object":
+                        config=value;
+                        break;
+                    default:
+                        if(value instanceof RegExp){
+                            config={resourceRegExp:value};
+                        }
+                    break;
+                }
+                config&&ignored.push(config);
+            }
+            defaultConfig.plugins.unshift(...ignored.map($=>new webpack.IgnorePlugin($)));
         }
         defaultConfig={...customConfig,...defaultConfig};
     }
