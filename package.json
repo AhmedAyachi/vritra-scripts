@@ -1,11 +1,12 @@
 {
   "name": "vritra-scripts",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Configuration and scripts for vritra-themed apps",
   "main": "src/index.js",
   "bin": {
     "vritra-scripts": "./src/index.js"
   },
+  "types": "./src/vritra-app.d.ts",
   "dependencies": {
     "connect-phonegap": "^0.25.0",
     "copy-webpack-plugin": "^11.0.0",
