@@ -2,8 +2,8 @@
 "use strict";
 
 const Webpack=require("webpack");
-const prepare=require("./subscripts/prepare");
-const logger=require("./subscripts/logger");
+const prepare=require("./Subscripts/prepare");
+const logger=require("./Subscripts/logger");
 
 module.exports=(args)=>prepare([...args,"--env=dev"]).
 then(options=>new Promise((resolve,reject)=>{

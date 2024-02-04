@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
-const logger=require("./subscripts/logger");
+const logger=require("./Subscripts/logger");
 const cmds=["start","build","watch","extract"];
 
 new Promise((_,reject)=>{

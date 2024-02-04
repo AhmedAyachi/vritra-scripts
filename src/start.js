@@ -7,7 +7,7 @@ const WebpackDevServer=require("webpack-dev-server");
 const build=require("./build");
 const phonegap=require("connect-phonegap");
 const cordova=require("cordova-serve")();
-const logger=require("./subscripts/logger");
+const logger=require("./Subscripts/logger");
 const processDir=process.cwd();
 const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 

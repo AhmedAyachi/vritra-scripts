@@ -16,13 +16,10 @@ module.exports=({id})=>{
     const isProdEnv=id.startsWith("prod");
     return {
         mode:isProdEnv?"production":"development",
-        entry:(()=>{
-            const entry={};
-            webviews.forEach(webview=>{
-                entry[webview.name]=path.resolve("./src/WebViews/",webview.name,"index.js");
-            });
-            return entry;
-        })(),
+        entry:Object.fromEntries(webviews.map(webview=>[
+            webview.name,
+            path.resolve("./src/WebViews/",webview.name,"index.js"),
+        ])),
         output:{
             path:path.resolve(processDir,"www"),
             filename:"[name].js",

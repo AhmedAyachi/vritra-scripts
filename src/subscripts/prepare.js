@@ -17,19 +17,20 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
 });
 
 const getWebPackConfig=(defaultConfig,customConfig)=>{
+    let config=defaultConfig;
     if(customConfig){
-        Object.assign(defaultConfig.devServer,customConfig.devServer);
-        const {plugins,resolve,definitions,ignore}=customConfig;
+        const {devServer,plugins,resolve,definitions,ignore}=customConfig;
+        devServer&&Object.assign(config.devServer,devServer);
         if(resolve){
-            const defaultResolve=defaultConfig.resolve,{alias}=resolve;
+            const defaultResolve=config.resolve,{alias}=resolve;
             if(alias){
                 defaultResolve.alias={...resolve.alias,...defaultResolve.alias};
             }
-            defaultConfig.resolve={...resolve,...defaultResolve};
+            config.resolve={...resolve,...defaultResolve};
         }
         if(definitions){
             delete customConfig.definitions;
-            defaultConfig.plugins.unshift(new webpack.DefinePlugin(definitions));
+            config.plugins.unshift(new webpack.DefinePlugin(definitions));
         }
         if(Array.isArray(ignore)){
             delete customConfig.ignore;
@@ -44,13 +45,13 @@ const getWebPackConfig=(defaultConfig,customConfig)=>{
                 }
                 config&&ignores.push(new webpack.IgnorePlugin(config));
             }
-            defaultConfig.plugins.unshift(...ignores);
+            config.plugins.unshift(...ignores);
         }
-        Array.isArray(plugins)&&defaultConfig.plugins.push(...plugins);
+        Array.isArray(plugins)&&config.plugins.push(...plugins);
 
-        defaultConfig={...customConfig,...defaultConfig};
+        config={...customConfig,...config};
     }
-    return defaultConfig;
+    return config;
 }
 
 const getWebPackCustomConfig=(env,args)=>{
@@ -60,6 +61,16 @@ const getWebPackCustomConfig=(env,args)=>{
     if(exists){
         const customConfigExport=require(configPath);
         customConfig=typeof(customConfigExport)==="function"?customConfigExport({env,args}):customConfigExport;
+    }
+    if(!customConfig){customConfig={}};
+    const customPort=args.find(arg=>arg.startsWith("--port="));
+    if(customPort){
+        const value=parseInt(customPort.split("=").pop());
+        if(value){
+            let {devServer}=customConfig;
+            if(!devServer){devServer=customConfig.devServer={}};
+            devServer.port=value;
+        }
     }
     return customConfig;
 }
