@@ -24,6 +24,7 @@ module.exports=({id})=>{
             path:path.resolve(processDir,"www"),
             filename:"[name].js",
         },
+        cache:false,
         devServer:{
             compress:true,
             port:3000,
@@ -93,7 +94,7 @@ module.exports=({id})=>{
             })],
         },
         watchOptions:{
-            aggregateTimeout:0,
+            aggregateTimeout:200,
             poll:true,
             ignored:["node_modules/**"],
         },

@@ -53,12 +53,12 @@ const startPhonegapServer=(data)=>new Promise((resolve,reject)=>{
         else{
             const {devServer}=webpackConfig,{port}=devServer;
             process.cwd=()=>processDir+"/platforms/browser/";
-            phonegap.serve({...phonegapOptions,port}).
-            once("complete",()=>{
+            phonegap.serve({...phonegapOptions,port}).once("complete",()=>{
                 logger.logServerInfo({ipaddress,port,env});
                 devServer.open&&cordova.launchBrowser({url:`http://localhost:${port}`});
             });
             process.cwd=()=>processDir;
+            resolve();
         }
     });
 }),phonegapOptions={

@@ -19,15 +19,7 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
 const getWebPackConfig=(defaultConfig,customConfig)=>{
     let config=defaultConfig;
     if(customConfig){
-        const {devServer,plugins,resolve,definitions,ignore}=customConfig;
-        devServer&&Object.assign(config.devServer,devServer);
-        if(resolve){
-            const defaultResolve=config.resolve,{alias}=resolve;
-            if(alias){
-                defaultResolve.alias={...resolve.alias,...defaultResolve.alias};
-            }
-            config.resolve={...resolve,...defaultResolve};
-        }
+        const {definitions,ignore}=customConfig;
         if(definitions){
             delete customConfig.definitions;
             config.plugins.unshift(new webpack.DefinePlugin(definitions));
@@ -47,12 +39,25 @@ const getWebPackConfig=(defaultConfig,customConfig)=>{
             }
             config.plugins.unshift(...ignores);
         }
-        Array.isArray(plugins)&&config.plugins.push(...plugins);
-
-        config={...customConfig,...config};
+        mergeObjects(config,customConfig);
     }
     return config;
 }
+
+const mergeObjects=(item,value)=>{
+    if(item&&(typeof(item)==="object")){
+        if(Array.isArray(item)){
+            Array.isArray(value)&&item.push(...value);
+        }
+        else if(value&&(typeof(value)==="object")){
+            for(const key in value){
+                item[key]=mergeObjects(item[key],value[key]);
+            }
+        }
+        return item;
+    }
+    else return value;
+};
 
 const getWebPackCustomConfig=(env,args)=>{
     let customConfig;
