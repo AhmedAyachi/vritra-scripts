@@ -21,8 +21,8 @@ module.exports=({id})=>{
             path.resolve("./src/WebViews/",webview.name,"index.js"),
         ])),
         output:{
-            path:path.resolve(processDir,"www"),
             filename:"[name].js",
+            path:path.resolve(processDir,"www"),
         },
         cache:false,
         devServer:{
@@ -45,12 +45,15 @@ module.exports=({id})=>{
         plugins:[
             new webpack.DefinePlugin({isDevEnv,isTestEnv,isProdEnv}),
             ...webviews.map(webview=>new HTMLPlugin({
-                templateContent:getTemplateContent(!isProdEnv),
-                title:webview.name,
+                templateContent:getTemplateContent({
+                    withIcon:!isProdEnv,
+                    title:getAppName(),
+                }),
                 inject:"body",
                 minify:isProdEnv,
                 filename:webview.file,
                 chunks:[webview.name],
+                scriptLoading:"defer",
             })),
             new CopyPlugin({
                 patterns:[{from:"src/Assets/Fonts",to:"Fonts"}],
@@ -123,16 +126,16 @@ module.exports=({id})=>{
     };
 }
 
-const getTemplateContent=(setIcon)=>`
+const getTemplateContent=({title,withIcon})=>`
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta name="format-detection" content="telephone=no"/>
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width,viewport-fit=cover"/>
-    <title>Vritra App</title>
-    ${setIcon?`<link rel="icon" href="https://raw.githubusercontent.com/AhmedAyachi/RepoIllustrations/f7ee069a965d3558e0e7e2b7e6733d1a642c78c2/Vritra/Icon.svg"/>`:""}
+    <title>${title||"Vritra App"}</title>
+    ${withIcon?`<link rel="icon" href="https://raw.githubusercontent.com/AhmedAyachi/RepoIllustrations/f7ee069a965d3558e0e7e2b7e6733d1a642c78c2/Vritra/Icon.svg"/>`:""}
     <link rel="stylesheet" type="text/css" href="./Fonts/index.css"/>
 </head>
 <body>
@@ -140,3 +143,8 @@ const getTemplateContent=(setIcon)=>`
 </body>
 </html>
 `.trim();
+
+const getAppName=()=>{
+    const {name}=require(path.resolve(processDir,"package.json"));
+    return name&&name.split(/ |_|-/g).map(word=>word[0].toUpperCase()+word.slice(1)).join(" ");
+}

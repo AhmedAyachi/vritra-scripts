@@ -12,7 +12,7 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
     }
     else{
         FileSystem.copyFile(__dirname+"/Subscripts/"+filename,processDir+"/"+filename,()=>{
-            logger.log(`A ${filename} file was ${logger.sucessColor("successfully")} extracted.`);
+            logger.log(`A ${filename} file was ${logger.bold(logger.sucessColor("successfully"))} extracted.`);
             resolve();
         });
     }

@@ -2,6 +2,7 @@
 "use strict";
 
 const FileSystem=require("fs");
+const net=require("net");
 const Webpack=require("webpack");
 const WebpackDevServer=require("webpack-dev-server");
 const build=require("./build");
@@ -11,16 +12,29 @@ const logger=require("./Subscripts/logger");
 const processDir=process.cwd();
 const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 
-module.exports=(args)=>build([...args,"--env=dev"],false).
+
+module.exports=(args)=>build([...args,"--env=dev"],{log:false,clean:false}).
 then(data=>{
     const {env}=data,envId=env.id;
     if(envId==="prod"){
-        return Promise.reject({message:"Can not execute the start command in production mode"});
+        return Promise.reject(new Error("Can not execute the start command in production mode"));
     }
     else if(FileSystem.existsSync(browserPlatformEntry)){
-        const isDevEnv=(envId==="dev");
-        logger.log(`Starting ${logger.bold(isDevEnv?"Webpack":"Phonegap")} server in ${env.name} mode ...`);
-        return (isDevEnv?startWebPackServer:startPhonegapServer)(data);
+        const {port}=data.webpackConfig.devServer;
+        return isFreePort(port).then(()=>{
+            const isDevEnv=(envId==="dev");
+            logger.log(`Starting ${logger.bold(isDevEnv?"Webpack":"Phonegap")} server in ${env.name} mode ...`);
+            return (isDevEnv?startWebPackServer:startPhonegapServer)(data);
+        }).
+        catch(error=>{
+            logger.error(error.message);
+            if(error.portInUse){
+                logger.log([
+                    `use the ${logger.minorColor("--port option")} to specify a different port.\n`,
+                    `--port=<PORT_NUMBER>`,
+                ]);
+            }
+        });
     }
     else{
         logger.log([
@@ -37,8 +51,10 @@ const startWebPackServer=(data)=>new Promise((resolve,reject)=>{
     devServer.startCallback(error=>{
         if(error){reject(error)}
         else{
-            const port=logger.bold(devServer.options.port);
-            logger.logServerInfo({ipaddress,port,env});
+            logger.logServerInfo({
+                ipaddress,env,
+                port:logger.bold(devServer.options.port),
+            });
             resolve();
         }
     });
@@ -56,7 +72,7 @@ const startPhonegapServer=(data)=>new Promise((resolve,reject)=>{
             phonegap.serve({...phonegapOptions,port}).once("complete",()=>{
                 logger.logServerInfo({ipaddress,port,env});
                 devServer.open&&cordova.launchBrowser({url:`http://localhost:${port}`});
-            });
+            }).on("error",reject);
             process.cwd=()=>processDir;
             resolve();
         }
@@ -74,3 +90,20 @@ const startPhonegapServer=(data)=>new Promise((resolve,reject)=>{
     push:false,
     refresh:false,
 };
+
+const isFreePort=(port)=>new Promise((resolve,reject)=>{
+    const server=net.createServer();
+    server.once("error",(error)=>{
+        error.portInUse=error.code==="EADDRINUSE";
+        if(error.portInUse){
+            error.message=`port ${port} is in use.`;
+        }
+        reject(error);
+    });
+    server.once("listening",()=>{
+        server.close(error=>{
+          resolve(!error);
+        });
+    });
+    server.listen(port);
+});
