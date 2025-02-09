@@ -5,16 +5,36 @@ const FileSystem=require("fs");
 const webpack=require("webpack");
 const processDir=process.cwd();
 const envIds=["dev","test","prod"];
+const mergeObjects=require("./mergeObjects");
 
 module.exports=(args)=>new Promise((resolve,reject)=>{
     const env=getEnv(args),isProdEnv=(env.id==="prod");
-    const defaultConfig=require("./webpack.config.js")(env);
-    const customConfig=getWebPackCustomConfig(env,args);
+    const defaultConfig=require("../Config/webpack.config.js")(env);
+    const vritraConfig=getVritraConfig(env,args);
+    const cypressConfig=getCypressConfig(env,vritraConfig);
+    delete vritraConfig.cypress;
     resolve({
-        webpackConfig:getWebPackConfig(defaultConfig,customConfig),
-        ipaddress:(!isProdEnv)&&getLocalIpAddress(),env,
+        webpackConfig:getWebPackConfig(defaultConfig,vritraConfig),
+        ipaddress:(!isProdEnv)&&getLocalIpAddress(),
+        cypressConfig,env,
     });
 });
+
+const getCypressConfig=({id:envId},vritraConfig)=>{
+    const {definitions}=vritraConfig,env={};
+    for(const key in definitions){
+        env[key]=definitions[key];
+    }
+    return {
+        ...vritraConfig.cypress,
+        env:{
+            ...env,
+            isDevEnv:envId==="dev",
+            isTestEnv:envId==="test",
+            isProdEnv:envId==="prod",
+        }
+    };
+};
 
 const getWebPackConfig=(defaultConfig,customConfig)=>{
     let config=defaultConfig;
@@ -44,22 +64,7 @@ const getWebPackConfig=(defaultConfig,customConfig)=>{
     return config;
 }
 
-const mergeObjects=(item,value)=>{
-    if(item&&(typeof(item)==="object")){
-        if(Array.isArray(item)){
-            Array.isArray(value)&&item.push(...value);
-        }
-        else if(value&&(typeof(value)==="object")){
-            for(const key in value){
-                item[key]=mergeObjects(item[key],value[key]);
-            }
-        }
-        return item;
-    }
-    else return value;
-};
-
-const getWebPackCustomConfig=(env,args)=>{
+const getVritraConfig=(env,args)=>{
     let customConfig;
     const configPath=`${processDir}/vritra.config.js`;
     const exists=FileSystem.existsSync(configPath);

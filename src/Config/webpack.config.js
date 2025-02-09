@@ -71,14 +71,14 @@ module.exports=({id})=>{
                                 modules:{
                                     mode:"local",
                                     auto:true,
-                                    localIdentName:"[local]_[hash]",
+                                    localIdentName:isProdEnv?"[hash]":"[local]_[hash]",
                                 },
                             },
                         },
                     ],
                 },
                 {
-                    test: /\.(jpe?g|png|gif|svg|mp4)$/i,
+                    test:/\.(jpe?g|png|gif|svg|mp4|webm|mp3|wav|ogg|avi|mov|flv|mkv|pdf|txt)$/i,
                     loader:require.resolve("file-loader"),
                     options:{
                         name:"Assets/[name]_[hash].[ext]",

@@ -2,7 +2,8 @@
 "use strict";
 
 const logger=require("./Subscripts/logger");
-const cmds=["start","build","watch","extract"];
+const cmds=["start","test","build","watch","extract"];
+
 
 new Promise((_,reject)=>{
     process.on("unhandledRejection",reject);
