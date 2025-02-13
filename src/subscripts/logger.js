@@ -36,7 +36,7 @@ module.exports={
     getBuildNotice:function(env){
         return [
             `Note that the ${env.name} build is not optimized.`,
-            `To create a production build, use ${this.minorColor("npm run build")}.`
+            `To create a production build, just use ${this.minorColor("npm run build")}.`
         ];
     }
 }

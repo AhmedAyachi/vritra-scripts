@@ -13,7 +13,7 @@ const processDir=process.cwd();
 const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 
 
-module.exports=(args)=>build([...args,"--env=dev"],{log:false,clean:false}).
+module.exports=(args,{log=true}={})=>build([...args,"--env=dev"],{log:false,clean:false}).
 then(data=>{
     const {env}=data,envId=env.id;
     if(envId==="prod"){
@@ -23,16 +23,15 @@ then(data=>{
         const {port}=data.webpackConfig.devServer;
         const noOpen=args.some(arg=>arg==="--no-open");
         if(noOpen) data.webpackConfig.devServer.open=false;
-        const verbose=!args.some(arg=>arg==="--no-log");
         return isFreePort(port).then(()=>{
             const isDevEnv=(envId==="dev");
-            if(verbose){
+            if(log){
                 logger.log(`Starting ${logger.bold(isDevEnv?"Webpack":"Phonegap")} server in ${env.name} mode ...`);
             }
-            return (isDevEnv?startWebPackServer:startPhonegapServer)(data,verbose);
+            return (isDevEnv?startWebPackServer:startPhonegapServer)(data,log);
         }).
         catch(error=>{
-            if(verbose){
+            if(log){
                 logger.error(error.message);
                 if(error.portInUse){
                     logger.log([
@@ -52,22 +51,22 @@ then(data=>{
     }
 });
 
-const startWebPackServer=(data,verbose)=>new Promise((resolve,reject)=>{
+const startWebPackServer=(data,log)=>new Promise((resolve,reject)=>{
     const {webpackConfig,env,ipaddress}=data;
     const devServer=new WebpackDevServer(webpackConfig.devServer,Webpack(webpackConfig));
     devServer.startCallback(error=>{
         if(error){reject(error)}
         else{
-            if(verbose) logger.logServerInfo({
+            if(log) logger.logServerInfo({
                 ipaddress,env,
                 port:logger.bold(devServer.options.port),
             });
-            resolve();
+            resolve(data);
         }
     });
 });
 
-const startPhonegapServer=(data,verbose)=>new Promise((resolve,reject)=>{
+const startPhonegapServer=(data,log)=>new Promise((resolve,reject)=>{
     const {webpackConfig,env,ipaddress}=data;
     webpackConfig.output.path=webpackConfig.devServer.static.directory;
     const compiler=Webpack(webpackConfig);
@@ -77,11 +76,11 @@ const startPhonegapServer=(data,verbose)=>new Promise((resolve,reject)=>{
             const {devServer}=webpackConfig,{port}=devServer;
             process.cwd=()=>processDir+"/platforms/browser/";
             phonegap.serve({...phonegapOptions,port}).once("complete",()=>{
-                if(verbose) logger.logServerInfo({ipaddress,port,env});
+                if(log) logger.logServerInfo({ipaddress,port,env});
                 if(devServer.open) cordova.launchBrowser({url:`http://localhost:${port}`});
             }).on("error",reject);
             process.cwd=()=>processDir;
-            resolve();
+            resolve(data);
         }
     });
 }),phonegapOptions={

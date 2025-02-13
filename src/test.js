@@ -10,63 +10,70 @@ const mergeObjects=require("./Subscripts/mergeObjects");
 const logger=require("./Subscripts/logger");
 const processDir=process.cwd();
 const cypressConfigFileName="cypress.config.js";
-const cypressConfigDir=`${processDir}/platforms/browser/`;
-const cypressConfigFile=Path.resolve(cypressConfigDir,cypressConfigFileName);
 
 
-module.exports=async function test(args,port=50000){
+module.exports=async function test(args,{port=50000}={}){
     const freePort=await isFreePort(port).catch(()=>false);
-    const supportFiles=[cypressConfigFile];
     if(freePort){
         args.push("-t");
-        args.unshift(`--port=${port}`);
-        return prepare([...args]).then(options=>{
-            const exists=FileSystem.existsSync(`${processDir}/${cypressConfigFileName}`);
-            if(exists){
-                logger.log([
-                    `A ${logger.minorColor(cypressConfigFileName)} file exists.`,
-                    `Please remove it or use the cypress property of the ${logger.mainColor("vritra.config.js")} instead.`,
-                ]);
-                throw null;
-            }
-            else return start(["--no-open","--no-log",...args]).finally(()=>{
-                const config=getCypressConfig(options);
-                const supportFilePath=config.e2e.supportFile=createCypressSupportFile(config);
-                supportFiles.push(supportFilePath);
-                FileSystem.writeFileSync(cypressConfigFile,`module.exports=${getCypressConfigText(config)}`);
-                const withGUI=args.some(arg=>arg==="--gui");
-                process.on("SIGINT",()=>{
-                    try { 
-                        supportFiles.forEach(path=>{
-                            FileSystem.rmSync(path);
-                        });
-                    } catch {};
-                });
-                (withGUI?cypress.open:cypress.run)({configFile:cypressConfigFile}).then(()=>{
-                    const {env}=options;
-                    if(env.id!=="prod"){
+        args.unshift(`--port=${port}`)// force port value
+        return prepare(args).then(options=>{
+            const config=getCypressConfig(options),{folderPath}=config;
+            if(FileSystem.existsSync(folderPath)){
+                const exists=FileSystem.existsSync(`${processDir}/${cypressConfigFileName}`);
+                if(exists){
+                    logger.log([
+                        `A ${logger.minorColor(cypressConfigFileName)} file exists.`,
+                        `Please remove it or use the ${logger.sucessColor("cypress")} property of the ${logger.accentColor("vritra.config.js")} instead.`,
+                    ]);
+                    throw null;
+                }
+                else return start(["--no-open",...args],{log:false}).then(()=>{
+                    const {cacheDirPath}=options;
+                    const cypressConfigFile=Path.resolve(cacheDirPath,cypressConfigFileName);
+                    config.e2e.supportFile=createCypressSupportFile(cacheDirPath,config);
+                    FileSystem.writeFileSync(cypressConfigFile,`module.exports=${getCypressConfigText(config)}`);
+                    
+                    const withGUI=args.some(arg=>arg==="--gui");
+                    return (()=>{
+                        const cypressOptions={
+                            headless:true,
+                            configFile:cypressConfigFile,
+                        }
+                        if(withGUI) return cypress.open(cypressOptions);
+                        else{
+                            const fileArg=args.find(arg=>arg.startsWith("--file="));
+                            if(fileArg){
+                                cypressOptions.spec=fileArg.split("=")[1];
+                            }
+                            return cypress.run(cypressOptions);
+                        }
+                    })().then(()=>{
+                        const {env}=options;
                         logger.log(`Note: Tests ran in a ${logger.minorColor(env.name)} environment.`);
-                    }
-                }).finally(()=>{
-                    supportFiles.forEach(path=>{
-                        FileSystem.rmSync(path);
+                    }).finally(()=>{
+                        process.exit(0);
                     });
-                    process.exit(0);
                 });
-            });
+            }
+            else throw new Error("no such test folder: "+folderPath);
         });
     }
-    else return test(args,port+1);
+    else return test(args,{port:port+1});
 };
 
-const createCypressSupportFile=(config)=>{
-    const supportFilePath=config.e2e.supportFile;
-    const fileName=Path.basename(supportFilePath);
-    const customContent=FileSystem.existsSync(supportFilePath)?FileSystem.readFileSync(supportFilePath).toString("utf8"):"";
-    const defaultContent=FileSystem.readFileSync(Path.resolve(__dirname,"./Config/CypressSupportFile.js")).toString("utf8");
-    const filePath=Path.resolve(cypressConfigDir,fileName);
-    FileSystem.writeFileSync(filePath,customContent+"\n"+defaultContent);
-    return filePath;
+const createCypressSupportFile=(location,config)=>{
+    let supportFilePath=config.e2e.supportFile;
+    if(!supportFilePath||FileSystem.existsSync(supportFilePath)){
+        if(supportFilePath) supportFilePath=Path.resolve(process.cwd(),supportFilePath);
+        const defaultPath=`${config.folderPath}/Setup.js`;
+        if(FileSystem.existsSync(defaultPath)) supportFilePath=defaultPath;
+        const defaultContent=FileSystem.readFileSync(Path.resolve(__dirname,"./Config/CypressSupportFile.js")).toString("utf8");
+        const filePath=Path.resolve(location,"CypressSupportFile.js");
+        FileSystem.writeFileSync(filePath,(supportFilePath?`import "${supportFilePath}";`:"")+"\n"+defaultContent);
+        return filePath;
+    }
+    else throw new Error(`No such support file: ${supportFilePath}`);
 }
 
 const getCypressConfigText=(config)=>{
@@ -95,28 +102,16 @@ const getCypressConfigText=(config)=>{
 
 const getCypressConfig=({webpackConfig,cypressConfig})=>{
     const port=webpackConfig.devServer.port;
-    return cypress.defineConfig(mergeObjects({
+    const config=cypress.defineConfig(mergeObjects({
         env:cypressConfig.env,
         e2e:{
             baseUrl:`http://localhost:${port}/`,
-            supportFile:`${processDir}/tst/Setup.js`,
             specPattern:`${processDir}/tst/**/*.test.js`,
             screenshotOnRunFailure:true,
             video:false,
-            setupNodeEvents:(on,config)=>{
-                const cache={};
-                on("task",{
-                    cache:(param)=>{
-                        if(typeof(param)==="string") return cache[param]||null;
-                        else if(Array.isArray(param)){
-                            const [key,value]=param;
-                            cache[key]=value;
-                            return value;
-                        }
-                    },
-                });
-                return config;
-            },
         },
     },cypressConfig));
+    const {e2e}=config;
+    config.folderPath=Path.resolve(processDir,e2e.specPattern.replace(/\/\*+\/[^\/]+\.js$/,""));
+    return config;
 }

@@ -1,31 +1,44 @@
 
+Cypress.Commands.add("longPress",{prevSubject:"optional"},(subject,selector,options)=>{
+    const {duration=550,force=true}=options||{};
+    (()=>{
+        if(selector) return cy.get(selector);
+        else return cy.wrap(subject[0]);
+    })().as("LongPressStart").
+    trigger("mousedown",{force}).
+    wait(duration).
+    trigger("mouseup",{force}).
+    as("LongPressEnd");
+});
 
 Cypress.Commands.add("waitForRemoval",{prevSubject:"optional"},(subject,...args)=>{
     let selector=args.find(arg=>typeof(arg)==="string");
     const options=args.find(arg=>typeof(arg)==="object")||{};
     if(!selector&&subject) selector=subject.selector;
     if(selector){
-        const {timeout,delay=30,interval=200}=options;
-        const retryCount=options.retryCount||(timeout&&10);
+        const {retryCount,timeout=60000,delay=50,interval=200}=options;
         if(delay) cy.wait(delay);
         const start=timeout&&Date.now();
-        cy.window().then(window=>{
-            !function perform(tryIndex=0){
-                cy.wrap(new Promise(resolve=>{
-                    const elapsed=timeout&&(Date.now()-start);
-                    if(!timeout||(elapsed<=timeout)){
-                        resolve(Boolean(window.document.querySelector(selector)));
-                    }
-                })).then(exists=>{
+        cy.window().as("waitForRemoval").then({timeout},(window)=>{
+            const checkExistance=(tryIndex=0)=>new Cypress.Promise(resolve=>{
+                if(!timeout||((Date.now()-start)<=timeout)){
+                    const exists=Boolean(window.document.querySelector(selector));
                     if(exists){
                         if(!retryCount||(tryIndex<retryCount)){
-                            if(interval) cy.wait(interval);
-                            perform(tryIndex+1);
+                            setTimeout(()=>{
+                                resolve(checkExistance(tryIndex+1));
+                            },interval);
                         }
-                        else throw new Error(`element ${selector} still in the DOM`);
+                        else throw `Max retry count (${retryCount}) reached`;
                     }
-                }); 
-            }(); 
+                    else resolve();
+                }
+                else throw `Timeout (${timeout+" ms"}) reached`;
+            });
+            return checkExistance().catch(message=>{
+                message=`${message} and the element ${selector} still in the DOM`;
+                return Cypress.Promise.reject(new Error(message));
+            }); 
         });
     }
 });

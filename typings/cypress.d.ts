@@ -12,7 +12,7 @@ declare namespace Cypress {
          * If no selector is passed, the command uses the previous chain subject.
          * @param selector element query selector
          * @notice A custom command defined by vritra-scripts
-         * @example The example below are equivalent
+         * @example //The examples below are equivalent
          * cy.waitForRemoval("#element-id",{timeout:5000});
          * cy.get("#element-id").waitForRemoval({timeout:5000});
          */
@@ -20,13 +20,30 @@ declare namespace Cypress {
         waitForRemoval(options?:WaitForRemovalOptions):this;
 
         /**
-         * A caching task that persists data across tests/specs.
+         * Gets the first element that matches the selector
+         * @notice A custom command defined by vritra-scripts
+         */
+        getFirst(selector:string):this;
+
+        /**
+         * If no selector is passed, the command uses the previous chain subject.
+         * @param selector 
+         * @param options 
+         * @notice A custom command defined by vritra-scripts
+         */
+        longPress(selector?:string,options?:LongPressOptions):this;
+        longPress(options?:LongPressOptions):this;
+
+        /**
+         * Cache item getter.
+         * A caching task that persists data across tests, sessions and specs.
          * @param event 
          * @notice A custom task defined by vritra-scripts
          */
         task<S=unknown>(event:"cache",key:string,options?:Partial<Loggable&Timeoutable>):Chainable<S>;
         /**
-         * 
+         * Cache item setter.
+         * A caching task that persists data across tests, sessions and specs.
          * @param setter [key,value]
          */
         task<S=unknown>(event:"cache",setter:[string,any],options?:Partial<Loggable&Timeoutable>):Chainable<S>;
@@ -34,18 +51,34 @@ declare namespace Cypress {
     
     type WaitForRemovalOptions={
         /**
-             * @default 30
-             */
+        * @default 50
+        */
         delay?:number,
+        /**
+         * Set to null to disable
+         * in ms.
+         * @default 60000
+         */
         timeout?:number,
         /**
          * @default 200
          */
         interval?:number,
         /**
-         * @default until the timeout elapses
+         * @default null
          */
         retryCount?:number,
+    }
+
+    type LongPressOptions={
+        /**
+         * @default true
+         */
+        force:boolean,
+        /**
+         * @default 550
+         */
+        duration:number,
     }
 
     interface cy {}

@@ -6,6 +6,7 @@ const webpack=require("webpack");
 const processDir=process.cwd();
 const envIds=["dev","test","prod"];
 const mergeObjects=require("./mergeObjects");
+const cacheDirPath=`${processDir}/node_modules/.cache/vritra-scripts/`;
 
 module.exports=(args)=>new Promise((resolve,reject)=>{
     const env=getEnv(args),isProdEnv=(env.id==="prod");
@@ -13,17 +14,19 @@ module.exports=(args)=>new Promise((resolve,reject)=>{
     const vritraConfig=getVritraConfig(env,args);
     const cypressConfig=getCypressConfig(env,vritraConfig);
     delete vritraConfig.cypress;
+    if(!FileSystem.existsSync(cacheDirPath)) FileSystem.mkdirSync(cacheDirPath,{recursive:true});
     resolve({
         webpackConfig:getWebPackConfig(defaultConfig,vritraConfig),
         ipaddress:(!isProdEnv)&&getLocalIpAddress(),
-        cypressConfig,env,
+        cacheDirPath,env,cypressConfig,
     });
 });
 
 const getCypressConfig=({id:envId},vritraConfig)=>{
     const {definitions}=vritraConfig,env={};
     for(const key in definitions){
-        env[key]=definitions[key];
+        const value=definitions[key];
+        env[key]=typeof(value)==="string"?value.replace(/^['"](.*)['"]$/,"$1"):value;
     }
     return {
         ...vritraConfig.cypress,
