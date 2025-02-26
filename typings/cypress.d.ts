@@ -20,12 +20,6 @@ declare namespace Cypress {
         waitForRemoval(options?:WaitForRemovalOptions):this;
 
         /**
-         * Gets the first element that matches the selector
-         * @notice A custom command defined by vritra-scripts
-         */
-        getFirst(selector:string):this;
-
-        /**
          * If no selector is passed, the command uses the previous chain subject.
          * @param selector 
          * @param options 
