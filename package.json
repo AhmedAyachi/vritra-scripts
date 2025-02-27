@@ -1,6 +1,6 @@
 {
   "name": "vritra-scripts",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Configuration and scripts for vritra-themed apps",
   "main": "src/index.js",
   "bin": {
