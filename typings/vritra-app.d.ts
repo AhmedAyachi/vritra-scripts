@@ -1,7 +1,22 @@
 
 
+/**
+ * A webpack definition defined by vritra-scripts.
+ * 
+ * true in dev mode, false otherwise.
+ */
 declare const isDevEnv:boolean;
+/**
+ * A webpack definition defined by vritra-scripts.
+ * 
+ * true in test mode, false otherwise.
+ */
 declare const isTestEnv:boolean;
+/**
+ * A webpack definition defined by vritra-scripts.
+ * 
+ * true in prod mode, false otherwise.
+ */
 declare const isProdEnv:boolean;
 
 declare module "*.avif" {
