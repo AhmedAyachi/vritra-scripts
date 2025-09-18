@@ -10,10 +10,9 @@ const cacheDirPath=`${processDir}/node_modules/.cache/vritra-scripts/`;
 
 module.exports=(args)=>new Promise((resolve,reject)=>{
     const env=getEnv(args),isProdEnv=(env.id==="prod");
-    const defaultConfig=require("../Config/webpack.config.js")(env);
     const vritraConfig=getVritraConfig(env,args);
+    const defaultConfig=require("../Config/webpack.config.js")({env,config:vritraConfig});
     const cypressConfig=getCypressConfig(env,vritraConfig);
-    delete vritraConfig.cypress;
     if(!FileSystem.existsSync(cacheDirPath)) FileSystem.mkdirSync(cacheDirPath,{recursive:true});
     resolve({
         webpackConfig:getWebPackConfig(defaultConfig,vritraConfig),
@@ -40,28 +39,31 @@ const getCypressConfig=({id:envId},vritraConfig)=>{
 };
 
 const getWebPackConfig=(defaultConfig,customConfig)=>{
-    let config=defaultConfig;
+    const config=defaultConfig;
     if(customConfig){
-        const {definitions,ignore}=customConfig;
-        if(definitions){
-            delete customConfig.definitions;
-            config.plugins.unshift(new webpack.DefinePlugin(definitions));
-        }
+        const {definitions,provide,ignore}=customConfig;
+        if(definitions) config.plugins.unshift(new webpack.DefinePlugin(definitions));
+        if(provide) config.plugins.unshift(new webpack.ProvidePlugin(provide));
         if(Array.isArray(ignore)){
-            delete customConfig.ignore;
             const ignores=[];
             for(const value of ignore){
-                let config;
+                let options;
                 if(typeof(value)==="string"){
-                    config={resourceRegExp:new RegExp(`^${value}$`)};
+                    options={resourceRegExp:new RegExp(`^${value}$`)};
                 }
                 else{
-                    config=value instanceof RegExp?{resourceRegExp:value}:value;
+                    options=value instanceof RegExp?{resourceRegExp:value}:value;
                 }
-                config&&ignores.push(new webpack.IgnorePlugin(config));
+                if(options) ignores.push(new webpack.IgnorePlugin(options));
             }
             config.plugins.unshift(...ignores);
         }
+        [
+            "cypress","copy","html",
+            "definitions","provide","ignore",
+        ].forEach(key=>{
+            delete customConfig[key];
+        });
         mergeObjects(config,customConfig);
     }
     return config;
@@ -73,15 +75,15 @@ const getVritraConfig=(env,args)=>{
     const exists=FileSystem.existsSync(configPath);
     if(exists){
         const customConfigExport=require(configPath);
-        customConfig=typeof(customConfigExport)==="function"?customConfigExport({env,args}):customConfigExport;
+        customConfig=typeof(customConfigExport)==="function"?customConfigExport({env,webpack,args}):customConfigExport;
     }
-    if(!customConfig){customConfig={}};
+    if(!customConfig) customConfig={};
     const customPort=args.find(arg=>arg.startsWith("--port="));
     if(customPort){
         const value=parseInt(customPort.split("=").pop());
         if(value){
             let {devServer}=customConfig;
-            if(!devServer){devServer=customConfig.devServer={}};
+            if(!devServer) devServer=customConfig.devServer={};
             devServer.port=value;
         }
     }

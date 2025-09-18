@@ -1,16 +1,19 @@
 
 const path=require("path");
 const webpack=require("webpack");
-const TerserPlugin=require("terser-webpack-plugin");
 const HTMLPlugin=require("html-webpack-plugin");
 const CopyPlugin=require("copy-webpack-plugin");
+const TerserPlugin=require("terser-webpack-plugin");
+const CssMinimizerPlugin=require("css-minimizer-webpack-plugin");
+const JsonMinimizerPlugin=require("json-minimizer-webpack-plugin");
 const processDir=process.cwd();
 const webviews=[
     {name:"MainView",file:"index.html"},
     ...require(`${processDir}/src/WebViews/WebViews`),
 ];
 
-module.exports=({id})=>{
+module.exports=(options)=>{
+    const {env:{id},config}=options;
     const isDevEnv=id.startsWith("dev");
     const isTestEnv=id.startsWith("test");
     const isProdEnv=id.startsWith("prod");
@@ -44,20 +47,32 @@ module.exports=({id})=>{
         },
         plugins:[
             new webpack.DefinePlugin({isDevEnv,isTestEnv,isProdEnv}),
-            ...webviews.map(webview=>new HTMLPlugin({
-                templateContent:getTemplateContent({
-                    withIcon:!isProdEnv,
-                    title:getAppName(),
-                }),
-                inject:"body",
-                minify:isProdEnv,
-                filename:webview.file,
-                chunks:[webview.name],
-                scriptLoading:"defer",
-            })),
-            new CopyPlugin({
-                patterns:[{from:"src/Assets/Fonts",to:"Fonts"}],
+            ...webviews.map(webview=>{
+                const {html}=config;
+                return new HTMLPlugin({
+                    inject:"body",
+                    minify:isProdEnv,
+                    filename:webview.file,
+                    chunks:[webview.name],
+                    scriptLoading:"defer",
+                    ...html,
+                    templateContent:getTemplateContent({
+                        ...html,
+                        title:getAppName(),
+                        withIcon:!isProdEnv,
+                    }),
+                });
             }),
+            (()=>{
+                const {copy}=config;
+                return new CopyPlugin({
+                    ...copy,
+                    patterns:[
+                        ...(copy?.patterns||[]),
+                        {from:"src/Assets/Fonts",to:"Fonts"},
+                    ],
+                });
+            })(),
         ],
         module:{
             rules:[
@@ -88,13 +103,17 @@ module.exports=({id})=>{
         },
         optimization:{
             minimize:true,
-            minimizer:[new TerserPlugin({
-                parallel:true,
-                extractComments:false,
-                terserOptions:isProdEnv?{
-                    compress:{drop_console:true},
-                }:undefined,
-            })],
+            minimizer:[
+                new TerserPlugin({
+                    parallel:true,
+                    extractComments:false,
+                    terserOptions:isProdEnv?{
+                        compress:{drop_console:true},
+                    }:undefined,
+                }),
+                isProdEnv&&new CssMinimizerPlugin(),
+                isProdEnv&&new JsonMinimizerPlugin(),
+            ].filter(Boolean),
         },
         watchOptions:{
             aggregateTimeout:200,
@@ -126,7 +145,10 @@ module.exports=({id})=>{
     };
 }
 
-const getTemplateContent=({title,withIcon})=>`
+const getTemplateContent=(options)=>{
+    const {title,htmlMetadata,withDefaultIconTag=true,withCordovaScript=true}=options;
+
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -135,14 +157,16 @@ const getTemplateContent=({title,withIcon})=>`
     <meta name="msapplication-tap-highlight" content="no"/>
     <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width,viewport-fit=cover"/>
     <title>${title||"Vritra App"}</title>
-    ${withIcon?`<link rel="icon" href="https://raw.githubusercontent.com/AhmedAyachi/RepoIllustrations/f7ee069a965d3558e0e7e2b7e6733d1a642c78c2/Vritra/Icon.svg"/>`:""}
+    ${withDefaultIconTag?`<link rel="icon" href="https://raw.githubusercontent.com/AhmedAyachi/RepoIllustrations/f7ee069a965d3558e0e7e2b7e6733d1a642c78c2/Vritra/Icon.svg"/>`:""}
     <link rel="stylesheet" type="text/css" href="./Fonts/index.css"/>
+    ${htmlMetadata||""}
 </head>
 <body>
-    <script type="text/javascript" src="cordova.js"></script>
+    ${withCordovaScript?`<script type="text/javascript" src="cordova.js"></script>`:""}
 </body>
 </html>
 `.trim();
+}
 
 const getAppName=()=>{
     const {name}=require(path.resolve(processDir,"package.json"));
