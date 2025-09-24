@@ -13,10 +13,9 @@ const webviews=[
 ];
 
 module.exports=(options)=>{
-    const {env:{id},config}=options;
-    const isDevEnv=id.startsWith("dev");
-    const isTestEnv=id.startsWith("test");
-    const isProdEnv=id.startsWith("prod");
+    const {env,config}=options;
+    const {isDevEnv,isTestEnv,isProdEnv}=env;
+    const appName=getAppName();
     return {
         mode:isProdEnv?"production":"development",
         entry:Object.fromEntries(webviews.map(webview=>[
@@ -26,14 +25,18 @@ module.exports=(options)=>{
         output:{
             filename:"[name].js",
             path:path.resolve(processDir,"www"),
+            clean:!isDevEnv,
         },
         cache:false,
         devServer:{
-            compress:true,
             port:3000,
             open:true,
+            compress:isProdEnv,
             static:{
                 directory:path.join(processDir,"platforms/browser/","www"),
+            },
+            headers:{
+                "Cache-Control":"no-store",
             },
             client:{
                 reconnect:5,
@@ -47,32 +50,24 @@ module.exports=(options)=>{
         },
         plugins:[
             new webpack.DefinePlugin({isDevEnv,isTestEnv,isProdEnv}),
-            ...webviews.map(webview=>{
-                const {html}=config;
-                return new HTMLPlugin({
-                    inject:"body",
-                    minify:isProdEnv,
-                    filename:webview.file,
-                    chunks:[webview.name],
-                    scriptLoading:"defer",
-                    ...html,
-                    templateContent:getTemplateContent({
-                        ...html,
-                        title:getAppName(),
-                        withIcon:!isProdEnv,
-                    }),
-                });
+            ...webviews.map(webview=>new HTMLPlugin({
+                inject:"body",
+                minify:isProdEnv,
+                filename:webview.file,
+                chunks:[webview.name],
+                scriptLoading:"defer",
+                ...config.html,
+                templateContent:getTemplateContent({
+                    title:appName,
+                    withDefaultIconTag:!isProdEnv,
+                    ...config.html,
+                }),
+            })),
+            new CopyPlugin({
+                patterns:[
+                    {from:"src/Assets/Fonts",to:"Fonts"},
+                ],
             }),
-            (()=>{
-                const {copy}=config;
-                return new CopyPlugin({
-                    ...copy,
-                    patterns:[
-                        ...(copy?.patterns||[]),
-                        {from:"src/Assets/Fonts",to:"Fonts"},
-                    ],
-                });
-            })(),
         ],
         module:{
             rules:[
@@ -107,9 +102,16 @@ module.exports=(options)=>{
                 new TerserPlugin({
                     parallel:true,
                     extractComments:false,
-                    terserOptions:isProdEnv?{
-                        compress:{drop_console:true},
-                    }:undefined,
+                    terserOptions:{
+                        compress:{
+                            defaults:true,
+                            drop_console:isProdEnv,
+                            drop_debugger:isProdEnv,
+                        },
+                        format:{
+                            comments:!isProdEnv,
+                        },
+                    },
                 }),
                 isProdEnv&&new CssMinimizerPlugin(),
                 isProdEnv&&new JsonMinimizerPlugin(),
@@ -137,17 +139,12 @@ module.exports=(options)=>{
                 error:"red",
             },
         },
-        stats:{
-            all:false,
-            logging:false,
-            colors:true,
-        },
+        stats:{all:false},
     };
 }
 
 const getTemplateContent=(options)=>{
-    const {title,htmlMetadata,withDefaultIconTag=true,withCordovaScript=true}=options;
-
+    const {title,metadata,withDefaultIconTag,withCordovaScript=true}=options;
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -159,7 +156,7 @@ const getTemplateContent=(options)=>{
     <title>${title||"Vritra App"}</title>
     ${withDefaultIconTag?`<link rel="icon" href="https://raw.githubusercontent.com/AhmedAyachi/RepoIllustrations/f7ee069a965d3558e0e7e2b7e6733d1a642c78c2/Vritra/Icon.svg"/>`:""}
     <link rel="stylesheet" type="text/css" href="./Fonts/index.css"/>
-    ${htmlMetadata||""}
+    ${metadata?.trim()||"<!-- html.metadata string of your vritra config goes here -->"}
 </head>
 <body>
     ${withCordovaScript?`<script type="text/javascript" src="cordova.js"></script>`:""}

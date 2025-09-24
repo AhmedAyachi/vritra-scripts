@@ -13,24 +13,26 @@ const processDir=process.cwd();
 const browserPlatformEntry=`${processDir}/platforms/browser/www`;
 
 
-module.exports=(args,{log=true}={})=>build([...args,"--env=dev"],{log:false,clean:false}).
-then(data=>{
-    const {env}=data,envId=env.id;
-    if(envId==="prod"){
+module.exports=(args,{log=true}={})=>build([...args,"--env=dev"],{
+    log:false,
+}).then(data=>{
+    const {env}=data;
+    if(env.isProdEnv){
         return Promise.reject(new Error("Can not execute the start command in production mode"));
     }
     else if(FileSystem.existsSync(browserPlatformEntry)){
-        const {port}=data.webpackConfig.devServer;
+        const {webpackConfig}=data;
+        webpackConfig.output.clean=false;
+        const {port}=webpackConfig.devServer;
         const noOpen=args.some(arg=>arg==="--no-open");
-        if(noOpen) data.webpackConfig.devServer.open=false;
+        if(noOpen) webpackConfig.devServer.open=false;
         return isFreePort(port).then(()=>{
-            const isDevEnv=(envId==="dev");
+            const {isDevEnv}=env;
             if(log){
                 logger.log(`Starting ${logger.bold(isDevEnv?"Webpack":"Phonegap")} server in ${env.name} mode ...`);
             }
             return (isDevEnv?startWebPackServer:startPhonegapServer)(data,log);
-        }).
-        catch(error=>{
+        }).catch(error=>{
             if(log){
                 logger.error(error.message);
                 if(error.portInUse){
@@ -55,7 +57,7 @@ const startWebPackServer=(data,log)=>new Promise((resolve,reject)=>{
     const {webpackConfig,env,ipaddress}=data;
     const devServer=new WebpackDevServer(webpackConfig.devServer,Webpack(webpackConfig));
     devServer.startCallback(error=>{
-        if(error){reject(error)}
+        if(error) reject(error);
         else{
             if(log) logger.logServerInfo({
                 ipaddress,env,
@@ -71,7 +73,7 @@ const startPhonegapServer=(data,log)=>new Promise((resolve,reject)=>{
     webpackConfig.output.path=webpackConfig.devServer.static.directory;
     const compiler=Webpack(webpackConfig);
     compiler.watch(webpackConfig.watchOptions,(error)=>{
-        if(error){reject(error)}
+        if(error) reject(error);
         else{
             const {devServer}=webpackConfig,{port}=devServer;
             process.cwd=()=>processDir+"/platforms/browser/";

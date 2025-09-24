@@ -12,7 +12,7 @@ then(options=>new Promise((resolve,reject)=>{
     logger.log(`Starting watch in ${env.name} mode ...`);
     let index=0;
     compiler.watch(webpackConfig.watchOptions,(error)=>{
-        if(error){reject(error)}
+        if(error) reject(error);
         else{
             if(index){
                 const now=new Date(Date.now());
