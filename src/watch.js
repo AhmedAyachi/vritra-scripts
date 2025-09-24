@@ -8,6 +8,9 @@ const logger=require("./Subscripts/logger");
 module.exports=(args)=>prepare([...args,"--env=dev"]).
 then(options=>new Promise((resolve,reject)=>{
     const {webpackConfig,env}=options;
+    Object.assign(webpackConfig.output,{
+        filename:"[name].js",
+    });
     const compiler=Webpack(webpackConfig);
     logger.log(`Starting watch in ${env.name} mode ...`);
     let index=0;

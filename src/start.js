@@ -22,7 +22,10 @@ module.exports=(args,{log=true}={})=>build([...args,"--env=dev"],{
     }
     else if(FileSystem.existsSync(browserPlatformEntry)){
         const {webpackConfig}=data;
-        webpackConfig.output.clean=false;
+        Object.assign(webpackConfig.output,{
+            clean:false,
+            filename:"[name].js",
+        });
         const {port}=webpackConfig.devServer;
         const noOpen=args.some(arg=>arg==="--no-open");
         if(noOpen) webpackConfig.devServer.open=false;
